@@ -25,6 +25,21 @@
 <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
 {{- end }}
 
+{{- with site.Params.googleAnalytics }}
+<script>
+// 내 방문을 통계에서 뺀다. ?noga=1 로 한 번 접속하면 그 브라우저에서는 GA가 꺼진다(?noga=0 으로 복구).
+// GA4 의 내부 트래픽 제외는 IP 기반이라 모바일이나 외부 접속은 그대로 잡힌다.
+(function () {
+  try {
+    var q = location.search;
+    if (q.indexOf("noga=1") !== -1) localStorage.setItem("ga-opt-out", "1");
+    if (q.indexOf("noga=0") !== -1) localStorage.removeItem("ga-opt-out");
+    if (localStorage.getItem("ga-opt-out") === "1") window["ga-disable-{{ . }}"] = true;
+  } catch (e) {}
+})();
+</script>
+{{- end }}
+
 {{/* 애널리틱스는 배포본에만 붙인다. 로컬에서 돌리는 게 통계에 섞이면 안 된다. */}}
 {{- if and (not hugo.IsServer) site.Params.googleAnalytics }}
 <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.Params.googleAnalytics }}"></script>
