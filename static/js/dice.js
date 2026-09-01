@@ -15,7 +15,7 @@
   var P = "dc";
   var MAX = 10;
   var ROUNDS = 5;
-  var TICK_MS = 700;
+  var TICK_MS = 1250;   // 주사위가 멈추는 걸 보고 넘어가야 한다
 
   var STATS = [
     { key: "hand", name: "손끝", desc: "주사위 눈에 보정이 붙습니다" },
@@ -112,9 +112,61 @@
     return r;
   }
 
+  // ── 3D 주사위 ─────────────────────────────────────────────
+  //
+  // three.js 대신 CSS transform 을 쓴다. 큐브 하나 굴리자고 라이브러리를 통째로 받아오면
+  // 모바일 첫 로딩이 무거워진다. 결과는 이미 정해져 있으니 그 면이 앞에 오도록 각도만 주면 된다.
+
+  var $ = function (id) { return document.getElementById(P + "-" + id); };
+
+  // 3x3 격자에서 눈을 찍을 칸
+  var PIPS = {
+    1: [4],
+    2: [0, 8],
+    3: [0, 4, 8],
+    4: [0, 2, 6, 8],
+    5: [0, 2, 4, 6, 8],
+    6: [0, 2, 3, 5, 6, 8]
+  };
+  // 각 면을 앞으로 돌리는 회전값
+  var FACE_ROT = {
+    1: [0, 0], 2: [0, 180], 3: [0, -90],
+    4: [0, 90], 5: [-90, 0], 6: [90, 0]
+  };
+  // 큐브를 조립할 때 각 면을 놓는 위치
+  var FACE_PLACE = {
+    1: "translateZ(28px)",
+    2: "rotateY(180deg) translateZ(28px)",
+    3: "rotateY(90deg) translateZ(28px)",
+    4: "rotateY(-90deg) translateZ(28px)",
+    5: "rotateX(90deg) translateZ(28px)",
+    6: "rotateX(-90deg) translateZ(28px)"
+  };
+
+  function buildDie(el) {
+    var html = "";
+    for (var f = 1; f <= 6; f += 1) {
+      var cells = "";
+      for (var c = 0; c < 9; c += 1) {
+        cells += PIPS[f].indexOf(c) !== -1 ? "<i></i>" : "<span></span>";
+      }
+      html += '<span class="f" style="transform:' + FACE_PLACE[f] + '">' + cells + "</span>";
+    }
+    el.innerHTML = html;
+  }
+
+  var spins = 0;
+
+  function showFace(el, face) {
+    // 매번 회전을 더해가야 같은 눈이 연달아 나와도 굴러가는 게 보인다.
+    spins += 1;
+    var r = FACE_ROT[face];
+    el.style.transform =
+      "rotateX(" + (r[0] + 360 * spins) + "deg) rotateY(" + (r[1] + 360 * spins) + "deg)";
+  }
+
   // ── 화면 ──────────────────────────────────────────────────
 
-  function $(id) { return document.getElementById(P + "-" + id); }
 
   var setup = null, result = null, timer = null, ctxState = null;
 
@@ -134,6 +186,10 @@
   }
 
   function play() {
+    buildDie($("die1"));
+    buildDie($("die2"));
+    $("who").innerHTML = "&nbsp;";
+    $("note").innerHTML = "&nbsp;";
     var upto = {};
     result.players.forEach(function (p) { upto[p.name] = 0; });
     renderTable(upto);
@@ -155,6 +211,13 @@
       } else {
         upto[ev.name] = ev.round;
         renderTable(upto);
+        $("who").textContent = ev.name;
+        showFace($("die1"), ev.a);
+        showFace($("die2"), ev.b);
+        var note = $("note");
+        note.className = "dice-note" + (ev.big || ev.bust ? " big" : "");
+        note.textContent = (ev.rerolled ? "다시 굴림  " : "") +
+          (ev.big ? "대박!  " : "") + (ev.bust ? "쪽박…  " : "") + ev.score + "점";
         li.className = ev.big ? "log-crit" : ev.bust ? "log-bad" : "log-hit";
         li.textContent = ev.name + "  🎲 " + ev.a + "+" + ev.b +
           (ev.rerolled ? " (다시 굴림)" : "") +

@@ -349,3 +349,27 @@ p { margin: 0 0 14px; }
     background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
 }
 #rl-verdict .dot { display: inline-block; vertical-align: middle; }
+
+/* 3D dice (CSS transform. three.js 는 이 정도 연출에 비해 용량이 과하다) */
+.dice-stage { text-align: center; margin-bottom: 18px; }
+.dice-who { font-size: 15px; font-weight: 700; margin: 0 0 10px; min-height: 22px; }
+.dice-note { font-size: 13px; color: var(--muted); margin: 10px 0 0; min-height: 20px; }
+.dice-note.big { color: var(--accent); font-weight: 700; }
+
+.dice-pair {
+    display: flex; gap: 20px; justify-content: center; align-items: center;
+    height: 78px; perspective: 620px;
+}
+.die {
+    width: 56px; height: 56px; position: relative;
+    transform-style: preserve-3d;
+    transition: transform 680ms cubic-bezier(0.2, 0.85, 0.3, 1);
+}
+.die .f {
+    position: absolute; inset: 0;
+    background: var(--card); border: 1px solid var(--line); border-radius: 11px;
+    display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
+    padding: 7px; backface-visibility: hidden;
+}
+.die .f i { width: 9px; height: 9px; border-radius: 50%; background: var(--ink);
+    align-self: center; justify-self: center; }
