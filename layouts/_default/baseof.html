@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    {{ partial "head.html" . }}
+</head>
+<body>
+<header class="site-header">
+    <a class="brand" href="{{ "/" | relURL }}">심심풀이</a>
+</header>
+
+<main class="wrap">
+    {{ block "main" . }}{{ end }}
+</main>
+
+<footer class="site-footer">
+    <p>심심풀이 · 재미로 보는 테스트입니다</p>
+</footer>
+</body>
+</html>

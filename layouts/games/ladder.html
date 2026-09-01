@@ -1,0 +1,70 @@
+{{ define "main" }}
+<article class="game">
+    <p class="quiz-cat">{{ .Params.category }}</p>
+    <h1>{{ .Title }}</h1>
+
+    <section id="ld-setup">
+        <p class="lead">이름을 넣고 사다리를 타세요. 결과 칸은 매번 섞입니다.</p>
+
+        <label class="field">
+            <span>무엇을 걸까요 <em>(선택)</em></span>
+            <input type="text" id="ld-stake" placeholder="예) 오늘 커피" maxlength="24" autocomplete="off">
+        </label>
+
+        <div class="field">
+            <span>결과 방식</span>
+            <div class="rule-bar" id="ld-mode">
+                <button type="button" class="cam-btn on" data-mode="order">순서 정하기</button>
+                <button type="button" class="cam-btn" data-mode="one">한 명만 당첨</button>
+            </div>
+        </div>
+
+        <div class="add-row">
+            <input type="text" id="ld-input" placeholder="이름 입력" maxlength="10"
+                   autocomplete="off" spellcheck="false">
+            <button type="button" class="btn primary small" id="ld-add">추가</button>
+        </div>
+
+        <div class="roster-head">
+            <span>참가자</span>
+            <span class="hidden-note">최대 10명</span>
+        </div>
+        <ul class="roster" id="ld-roster"></ul>
+        <p class="roster-empty" id="ld-empty">아직 아무도 없습니다.</p>
+
+        <details class="rig-box">
+            <summary>방장 전용 <span class="rig-badge" id="ld-rig-badge" hidden>설정됨</span></summary>
+            <p class="rig-warn">여기는 방장만 보세요. 정해두면 그 결과가 나오는 사다리로 뽑습니다.</p>
+            <div class="rig-row">
+                <select id="ld-rig-target"><option value="">조작 안 함</option></select>
+                <select id="ld-rig-mode">
+                    <option value="lose">당첨(꼴찌) 시키기</option>
+                    <option value="win">1번 주기</option>
+                </select>
+            </div>
+        </details>
+
+        <button class="btn primary" id="ld-start" disabled>2명 이상 필요해요</button>
+    </section>
+
+    <section id="ld-stage" hidden>
+        <canvas id="ld-canvas" width="420" height="520" aria-label="사다리타기"></canvas>
+        <button class="btn ghost small" id="ld-skip">바로 보기</button>
+
+        <div class="result-panel" id="ld-result" hidden>
+            <p class="verdict" id="ld-verdict"></p>
+            <ol class="rank" id="ld-rank"></ol>
+            <div class="result-actions">
+                <button class="btn ghost small" id="ld-copy">결과 복사</button>
+                <button class="btn ghost small" id="ld-reset">명단 고치기</button>
+                <button class="btn primary" id="ld-again">다시 타기</button>
+            </div>
+        </div>
+    </section>
+
+    {{ with .Content }}<div class="game-desc">{{ . }}</div>{{ end }}
+</article>
+
+<script src="{{ "js/party.js" | relURL }}" defer></script>
+<script src="{{ "js/ladder.js" | relURL }}" defer></script>
+{{ end }}

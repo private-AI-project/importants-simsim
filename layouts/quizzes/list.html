@@ -1,0 +1,20 @@
+{{ define "main" }}
+<section class="hero">
+    <h1>전체 테스트</h1>
+    <p>골라서 해보세요.</p>
+</section>
+
+{{ $quizzes := where .RegularPages "Params.isResult" "!=" true }}
+<div class="quiz-grid">
+    {{ range $quizzes.ByWeight }}
+    <a class="quiz-card" href="{{ .RelPermalink }}">
+        <span class="quiz-emoji">{{ default "🎲" .Params.emoji }}</span>
+        <span class="quiz-cat">{{ .Params.category }}</span>
+        <strong class="quiz-title">{{ .Title }}</strong>
+        <span class="quiz-meta">{{ .Params.questionCount }}문항 · {{ .Params.estimatedMinutes }}분</span>
+    </a>
+    {{ else }}
+    <p class="empty">준비 중입니다.</p>
+    {{ end }}
+</div>
+{{ end }}

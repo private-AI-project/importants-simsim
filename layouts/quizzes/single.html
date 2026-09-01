@@ -1,0 +1,23 @@
+{{ define "main" }}
+{{ $q := index hugo.Data.quizzes .Params.quizSlug }}
+
+<article class="quiz-intro" id="quiz-intro">
+    <span class="quiz-emoji lg">{{ $q.emoji }}</span>
+    <p class="quiz-cat">{{ $q.category }}</p>
+    <h1>{{ $q.title }}</h1>
+    <p class="lead">{{ $q.intro }}</p>
+    <button class="btn primary" id="quiz-start">시작하기</button>
+    <p class="quiz-meta">{{ len $q.questions }}문항 · 약 {{ default 2 $q.estimatedMinutes }}분</p>
+</article>
+
+<section class="quiz-run" id="quiz-run" hidden data-base="{{ .RelPermalink }}">
+    <div class="progress"><div class="bar" id="quiz-bar"></div></div>
+    <p class="q-count" id="quiz-count"></p>
+    <h2 class="q-text" id="quiz-question"></h2>
+    <div class="choices" id="quiz-choices"></div>
+    <button class="btn ghost small" id="quiz-back" hidden>이전 문항</button>
+</section>
+
+<script id="quiz-data" type="application/json">{{ $q | jsonify | safeJS }}</script>
+<script src="{{ "js/quiz-engine.js" | relURL }}" defer></script>
+{{ end }}

@@ -1,0 +1,83 @@
+{{ define "main" }}
+<article class="game">
+    <p class="quiz-cat">{{ .Params.category }}</p>
+    <h1>{{ .Title }}</h1>
+
+    <section id="dc-setup">
+        <p class="lead">5라운드 동안 주사위를 굴려 점수를 쌓습니다. 마지막까지 뒤집힐 수 있어요.</p>
+
+        <label class="field">
+            <span>무엇을 걸까요 <em>(선택)</em></span>
+            <input type="text" id="dc-stake" placeholder="예) 오늘 커피" maxlength="24" autocomplete="off">
+        </label>
+
+        <div class="field">
+            <span>당첨 기준</span>
+            <div class="rule-bar" id="dc-rule">
+                <button type="button" class="cam-btn on" data-rule="last">꼴찌가 당첨</button>
+                <button type="button" class="cam-btn" data-rule="first">1등이 당첨</button>
+            </div>
+        </div>
+
+        <div class="add-row">
+            <input type="text" id="dc-input" placeholder="이름 입력" maxlength="10"
+                   autocomplete="off" spellcheck="false">
+            <button type="button" class="btn primary small" id="dc-add">추가</button>
+        </div>
+
+        <div class="roster-head">
+            <span>참가자</span>
+            <span class="hidden-note">능력치는 굴릴 때마다 새로 정해집니다</span>
+        </div>
+        <ul class="roster" id="dc-roster"></ul>
+        <p class="roster-empty" id="dc-empty">아직 아무도 없습니다. 최대 10명.</p>
+
+        <details class="rig-box">
+            <summary>방장 전용 <span class="rig-badge" id="dc-rig-badge" hidden>설정됨</span></summary>
+            <p class="rig-warn">여기는 방장만 보세요. 정해두면 결과가 그쪽으로 흘러갑니다.</p>
+            <div class="rig-row">
+                <select id="dc-rig-target"><option value="">조작 안 함</option></select>
+                <select id="dc-rig-mode">
+                    <option value="lose">꼴찌 만들기</option>
+                    <option value="win">1등 만들기</option>
+                </select>
+            </div>
+        </details>
+
+        <button class="btn primary" id="dc-start" disabled>2명 이상 필요해요</button>
+
+        <details class="ab-help">
+            <summary>능력치가 뭔가요</summary>
+            <ul id="dc-stat-help"></ul>
+        </details>
+    </section>
+
+    <section id="dc-stage" hidden>
+        <div class="score-wrap">
+            <table class="score">
+                <thead>
+                    <tr><th>이름</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th class="tot">합계</th></tr>
+                </thead>
+                <tbody id="dc-table"></tbody>
+            </table>
+        </div>
+        <ul class="log" id="dc-log"></ul>
+        <button class="btn ghost small" id="dc-skip">결과 바로 보기</button>
+
+        <div class="result-panel" id="dc-result" hidden>
+            <p class="verdict" id="dc-verdict"></p>
+            <ol class="rank" id="dc-rank"></ol>
+            <div class="result-actions">
+                <button class="btn ghost small" id="dc-copy">결과 복사</button>
+                <button class="btn ghost small" id="dc-reset">명단 고치기</button>
+                <button class="btn primary" id="dc-again">다시 굴리기</button>
+            </div>
+        </div>
+    </section>
+
+    {{ with .Content }}<div class="game-desc">{{ . }}</div>{{ end }}
+</article>
+
+<script src="{{ "js/party.js" | relURL }}" defer></script>
+<script src="{{ "js/dice.js" | relURL }}" defer></script>
+{{ end }}

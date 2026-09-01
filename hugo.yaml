@@ -1,0 +1,31 @@
+baseURL: "https://simsim.importants-studio.com/"
+locale: "ko-kr"
+defaultContentLanguage: "ko"
+title: "심심풀이"
+
+disableKinds: ["taxonomy", "term"]
+
+enableRobotsTXT: true
+enableEmoji: true
+
+pagination:
+  pagerSize: 24
+
+params:
+  description: "심심할 때 하나씩. 성격 테스트, 밸런스 게임, 상식 퀴즈."
+  defaultOgImage: "/images/og-default.png"
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: false
+    extensions:
+      # 한글 물결표 범위(3~4일)를 취소선으로 먹어버려서 끈다.
+      strikethrough: false
+
+outputs:
+  home: ["HTML", "RSS"]
+
+sitemap:
+  changefreq: weekly
+  priority: 0.7

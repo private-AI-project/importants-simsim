@@ -1,0 +1,24 @@
+{{ define "main" }}
+<section class="hero">
+    <h1>심심할 때 하나씩</h1>
+    <p>성격 테스트, 게임, 상식 퀴즈. 결과는 친구에게 보내세요.</p>
+</section>
+
+{{/* 결과 페이지는 목록에서 뺀다. 공유 링크로만 들어오는 페이지다. */}}
+{{ $items := where site.RegularPages "Params.isResult" "!=" true }}
+<div class="quiz-grid">
+    {{ range $items.ByWeight }}
+    {{ $p := . }}
+    <a class="quiz-card" href="{{ $p.RelPermalink }}">
+        <span class="quiz-emoji">{{ default "🎲" $p.Params.emoji }}</span>
+        <span class="quiz-cat">{{ $p.Params.category }}</span>
+        <strong class="quiz-title">{{ $p.Title }}</strong>
+        {{ with $p.Params.questionCount }}
+        <span class="quiz-meta">{{ . }}문항 · {{ default 2 $p.Params.estimatedMinutes }}분</span>
+        {{ end }}
+    </a>
+    {{ else }}
+    <p class="empty">준비 중입니다.</p>
+    {{ end }}
+</div>
+{{ end }}

@@ -1,0 +1,51 @@
+{{ define "main" }}
+{{ $q := index hugo.Data.quizzes .Params.quizSlug }}
+{{ $r := index (where $q.results "id" .Params.resultId) 0 }}
+
+<article class="result">
+    <p class="result-kicker">{{ $q.title }}</p>
+    <span class="result-emoji">{{ default "✨" $r.emoji }}</span>
+    <h1 class="result-name">{{ $r.name }}</h1>
+    <p class="result-summary">{{ $r.summary }}</p>
+
+    {{ with $r.desc }}<p class="result-desc">{{ . }}</p>{{ end }}
+
+    {{ with $r.traits }}
+    <ul class="traits">
+        {{ range . }}<li>{{ . }}</li>{{ end }}
+    </ul>
+    {{ end }}
+
+    <div class="share" data-share-text="{{ printf "%s 결과: %s" $q.title $r.name }}">
+        <span class="share-label">결과 공유하기</span>
+        <div class="share-btns">
+            <button class="share-btn kakao" type="button" data-share="native">카카오톡·메시지</button>
+            <button class="share-btn x" type="button" data-share="x">X</button>
+            <button class="share-btn link" type="button" data-share="copy">링크 복사</button>
+        </div>
+    </div>
+
+    <div class="result-actions">
+        <a class="btn ghost" href="{{ printf "/quizzes/%s/" .Params.quizSlug | relURL }}">다시 하기</a>
+        <a class="btn primary" href="{{ "/" | relURL }}">다른 테스트 보기</a>
+    </div>
+</article>
+
+{{ $others := first 4 (shuffle (where (where site.RegularPages "Section" "quizzes") "Params.isResult" "!=" true)) }}
+{{ with $others }}
+<section class="more">
+    <h2>이런 것도 있어요</h2>
+    <div class="quiz-grid">
+        {{ range . }}
+        <a class="quiz-card" href="{{ .RelPermalink }}">
+            <span class="quiz-emoji">{{ default "🎲" .Params.emoji }}</span>
+            <span class="quiz-cat">{{ .Params.category }}</span>
+            <strong class="quiz-title">{{ .Title }}</strong>
+        </a>
+        {{ end }}
+    </div>
+</section>
+{{ end }}
+
+<script src="{{ "js/share.js" | relURL }}" defer></script>
+{{ end }}
