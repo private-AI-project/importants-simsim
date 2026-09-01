@@ -12,6 +12,8 @@ pagination:
   pagerSize: 24
 
 params:
+  googleAnalytics: "G-WFXTXX3YR2"
+  naverVerification: ""   # 서치어드바이저에서 받은 값을 여기 넣으면 메타 태그가 붙는다
   description: "심심할 때 하나씩. 성격 테스트, 밸런스 게임, 상식 퀴즈."
   defaultOgImage: "/images/og-default.png"
 

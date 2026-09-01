@@ -17,6 +17,21 @@
 <meta property="og:image" content="{{ $og | absURL }}">
 <meta name="twitter:card" content="summary_large_image">
 
+{{- with site.Params.naverVerification }}
+<meta name="naver-site-verification" content="{{ . }}">
+{{- end }}
+
 {{- with resources.Get "css/main.css" | minify | fingerprint }}
 <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
+{{- end }}
+
+{{/* 애널리틱스는 배포본에만 붙인다. 로컬에서 돌리는 게 통계에 섞이면 안 된다. */}}
+{{- if and (not hugo.IsServer) site.Params.googleAnalytics }}
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ site.Params.googleAnalytics }}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '{{ site.Params.googleAnalytics }}');
+</script>
 {{- end }}
