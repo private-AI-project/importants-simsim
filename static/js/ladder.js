@@ -27,7 +27,8 @@
 
   var setup = null;
   var state = null;
-  var anim = 0;
+  var traceIdx = 0;     // 지금 내려가고 있는 참가자
+  var traceProg = 0;    // 그 참가자의 진행도 0~1
   var animating = false;
 
   function $(id) { return document.getElementById(P + "-" + id); }
@@ -167,12 +168,16 @@
       }
     }
 
-    // 경로. anim 이 0~1 로 늘어나면서 위에서 아래로 그려진다.
+    // 경로는 한 명씩 순서대로 내려간다. 전부 동시에 그리면 순식간에 끝나고
+    // 누가 어디로 갔는지도 안 보인다.
     ctx.lineWidth = 4;
     state.paths.forEach(function (p, i) {
+      if (i > traceIdx) return;
       var pts = p.pts;
-      var upto = Math.floor(anim * (pts.length - 1));
+      var frac = i < traceIdx ? 1 : traceProg;
+      var upto = Math.floor(frac * (pts.length - 1));
       if (upto < 1) return;
+      ctx.globalAlpha = i < traceIdx ? 0.45 : 1;
       ctx.strokeStyle = state.entries[i].color;
       ctx.beginPath();
       ctx.moveTo(colX(pts[0].c, cols), rowY(pts[0].r, rows));
@@ -180,6 +185,7 @@
         ctx.lineTo(colX(pts[j].c, cols), rowY(pts[j].r, rows));
       }
       ctx.stroke();
+      ctx.globalAlpha = 1;
     });
 
     ctx.textAlign = "center";
@@ -187,20 +193,29 @@
     for (var t = 0; t < cols; t += 1) {
       ctx.fillStyle = state.entries[t].color;
       ctx.fillText(state.entries[t].name, colX(t, cols), rowY(0, rows) - 14);
-      var done = anim >= 1;
-      ctx.fillStyle = done ? ink : line;
-      ctx.fillText(done ? state.outcomes[t] : "?", colX(t, cols), rowY(rows, rows) + 24);
+      // 그 참가자가 도착한 뒤에만 결과를 보여준다. 미리 다 보이면 볼 이유가 없다.
+      var arrived = state.paths.some(function (p, i) {
+        return (i < traceIdx || (i === traceIdx && traceProg >= 1)) && p.end === t;
+      });
+      ctx.fillStyle = arrived ? ink : line;
+      ctx.fillText(arrived ? state.slots[t] : "?", colX(t, cols), rowY(rows, rows) + 24);
     }
   }
 
+  var STEP = 0.016;   // 한 명이 내려가는 데 약 1초
+
   function tick() {
     if (!animating) return;
-    anim = Math.min(1, anim + 0.012);
+    traceProg = Math.min(1, traceProg + STEP);
     draw();
-    if (anim >= 1) {
-      animating = false;
-      finish();
-      return;
+    if (traceProg >= 1) {
+      if (traceIdx >= state.paths.length - 1) {
+        animating = false;
+        finish();
+        return;
+      }
+      traceIdx += 1;
+      traceProg = 0;
     }
     requestAnimationFrame(tick);
   }
@@ -255,13 +270,15 @@
       entries: cx.entries,
       rungs: built.rungs,
       perm: built.perm,
+      slots: slots,   // slots[칸] = 그 칸에 걸린 결과
       outcomes: built.perm.map(function (endCol) { return slots[endCol]; }),
       paths: built.perm.map(function (_, idx) { return trace(built.rungs, n, idx); }),
       stake: cx.stake,
       mode: mode
     };
 
-    anim = 0;
+    traceIdx = 0;
+    traceProg = 0;
     animating = true;
     $("setup").hidden = true;
     $("stage").hidden = false;
@@ -322,7 +339,8 @@
 
   $("skip").addEventListener("click", function () {
     if (!animating) return;
-    anim = 1;
+    traceIdx = state.paths.length - 1;
+    traceProg = 1;
     animating = false;
     draw();
     finish();
