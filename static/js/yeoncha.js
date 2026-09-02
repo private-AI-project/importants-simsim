@@ -16,9 +16,9 @@
   var YEARS = Object.keys(DATA).map(Number).sort(function (a, b) { return b - a; });
   var DOW = "일월화수목금토";
 
-  // 제휴 코드가 승인되면 aid/sid 만 채운다. 비어 있으면 그냥 검색 링크로 나가고
-  // "제휴 링크 포함" 표시도 붙지 않는다.
-  var AFFILIATE = { aid: "", sid: "" };
+  // 트립닷컴 제휴 코드. 파라미터 이름은 대시보드가 만들어 준 링크에서 확인한 것이다.
+  // allianceId/sid 가 비면 일반 검색 링크로 나가고 "제휴 링크 포함" 표시도 붙지 않는다.
+  var AFFILIATE = { allianceId: "10396443", sid: "330109774", sub3: "D19651648" };
 
   // 연휴 길이에 따라 갈 수 있는 거리가 갈린다. 이 서비스의 값어치가 그 판단에 있다.
   var TRIPS = [
@@ -468,7 +468,8 @@
       var grid = el("div", "yc-cities");
       t.trip.cities.forEach(function (pair) {
         var a = document.createElement("a");
-        a.href = flightLink(pair[0], t.span[0], t.span[1]);
+        a.href = flightLink(pair[0], t.span[0], t.span[1],
+          "detail-" + t.len + "d-" + pair[0]);
         a.target = "_blank";
         a.rel = "nofollow sponsored noopener";
         a.className = "yc-city";
@@ -487,7 +488,7 @@
       host.appendChild(card);
     });
     $("yc-d-trips-box").hidden = tiers.length === 0;
-    $("yc-d-badge").hidden = !AFFILIATE.aid;
+    $("yc-d-badge").hidden = !AFFILIATE.allianceId;
   }
 
   function renderYearGrid() {
@@ -570,10 +571,16 @@
     return null;
   }
 
-  function flightLink(city, from, to) {
+  // slot 은 어느 자리에서 눌렀는지 남기는 값이다. trip_sub1 이 그 용도로 비어 있어서,
+  // 대시보드에서 홈과 상세, 거리 단계별 성과를 나눠 볼 수 있다.
+  function flightLink(city, from, to, slot) {
     var q = "dcity=sel&acity=" + city + "&ddate=" + iso(from) + "&rdate=" + iso(to)
       + "&triptype=rt&class=y&quantity=1&locale=ko-KR&curr=KRW";
-    if (AFFILIATE.aid) q += "&aid=" + AFFILIATE.aid + "&sid=" + AFFILIATE.sid;
+    if (AFFILIATE.allianceId) {
+      q += "&Allianceid=" + AFFILIATE.allianceId + "&SID=" + AFFILIATE.sid
+        + "&trip_sub1=" + encodeURIComponent(slot || "")
+        + "&trip_sub3=" + AFFILIATE.sub3;
+    }
     return "https://kr.trip.com/flights/showfarefirst?" + q;
   }
 
@@ -614,7 +621,7 @@
       var links = el("div", "yc-trip-links");
       t.cities.forEach(function (pair) {
         var a = document.createElement("a");
-        a.href = flightLink(pair[0], hit.s, hit.e);
+        a.href = flightLink(pair[0], hit.s, hit.e, "home-" + hit.len + "d-" + pair[0]);
         a.target = "_blank";
         a.rel = "nofollow sponsored noopener";
         a.textContent = pair[1];
@@ -625,7 +632,7 @@
     });
 
     $("yc-trips-box").hidden = shown === 0;
-    $("yc-trips-badge").hidden = !AFFILIATE.aid;
+    $("yc-trips-badge").hidden = !AFFILIATE.allianceId;
   }
 
   function render() {
