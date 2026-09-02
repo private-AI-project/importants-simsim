@@ -16,7 +16,21 @@
   var YEARS = Object.keys(DATA).map(Number).sort(function (a, b) { return b - a; });
   var DOW = "일월화수목금토";
 
-  var state = { year: YEARS[0], leave: 15, touched: false, mode: "long", screen: "home", detail: null };
+  // 제휴 코드가 승인되면 aid/sid 만 채운다. 비어 있으면 그냥 검색 링크로 나가고
+  // "제휴 링크 포함" 표시도 붙지 않는다.
+  var AFFILIATE = { aid: "", sid: "" };
+
+  // 연휴 길이에 따라 갈 수 있는 거리가 갈린다. 이 서비스의 값어치가 그 판단에 있다.
+  var TRIPS = [
+    { min: 7, max: 99, label: "장거리", desc: "유럽, 미주",
+      cities: [["par", "파리"], ["rom", "로마"], ["bcn", "바르셀로나"]] },
+    { min: 5, max: 6, label: "중거리", desc: "동남아, 일본 지방 도시",
+      cities: [["bkk", "방콕"], ["dad", "다낭"], ["sin", "싱가포르"]] },
+    { min: 3, max: 4, label: "근거리", desc: "일본, 대만",
+      cities: [["osa", "오사카"], ["fuk", "후쿠오카"], ["tpe", "타이베이"]] }
+  ];
+
+  var state = { year: YEARS[0], leave: 15, touched: false, mode: "long", screen: "home", detail: null, picks: [] };
   var days = [];      // 선택된 연도의 날짜 배열
   var baseRest = [];  // 연차 없이 쉬는 날
   var calcCache = null;
@@ -124,6 +138,17 @@
       .reduce(function (s, b) { return s + b.len; }, 0);
   }
 
+  // 대체공휴일 이름은 대표 이름으로 쓰지 않는다. "대체공휴일(설날)" 대신 "설날".
+  function mainName(bl) {
+    var names = [];
+    for (var j = bl.s; j <= bl.e; j += 1) {
+      var h = days[j].hol;
+      if (h && names.indexOf(h) < 0) names.push(h);
+    }
+    var pick = names.filter(function (n) { return n.indexOf("대체") < 0; })[0] || names[0] || "";
+    return pick.replace(/\(.+\)/, "");
+  }
+
   // 공휴일이 하나라도 든 구간만 "연휴"로 본다. 그냥 주말은 카드로 만들지 않는다.
   function holidayBlocks() {
     return runs(baseRest).filter(function (bl) {
@@ -215,12 +240,7 @@
       var rec = !!(withLeave.lvs && withLeave.lvs.length);
       var show = rec ? withLeave : bl;
 
-      var names = [];
-      for (var j = bl.s; j <= bl.e; j += 1) {
-        var h = days[j].hol;
-        if (h && names.indexOf(h) < 0) names.push(h);
-      }
-      var main = names.filter(function (n) { return n.indexOf("대체") < 0; })[0] || names[0];
+      var main = mainName(bl);
 
       var card = el("section", "yc-holi" + (rec ? " rec" : ""));
       card.setAttribute("role", "button");
@@ -262,7 +282,7 @@
           var box = el("div", "yc-sugs");
           sugs.forEach(function (s) {
             var p = el("div", "yc-sug");
-            p.innerHTML = "연차 <b></b>을 쓰면 → <strong></strong>";
+            p.innerHTML = "<b></b>에 연차를 쓰면 → <strong></strong>";
             p.querySelector("b").textContent = s.day;
             p.querySelector("strong").textContent = s.len + "일";
             box.appendChild(p);
@@ -271,7 +291,9 @@
         }
       }
 
-      function open() { state.detail = idx; go("detail"); }
+      card.appendChild(el("div", "yc-holi-more", "항공편과 연차 조합 보기 →"));
+
+      function open() { state.detail = idx; state.picks = []; go("detail"); }
       card.addEventListener("click", open);
       card.addEventListener("keydown", function (e) {
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
@@ -285,30 +307,78 @@
     var bl = blocks[state.detail];
     if (!bl) { go("home"); return; }
 
-    var names = [];
-    for (var j = bl.s; j <= bl.e; j += 1) {
-      var h = days[j].hol;
-      if (h && names.indexOf(h) < 0) names.push(h);
-    }
-    var main = names.filter(function (n) { return n.indexOf("대체") < 0; })[0] || names[0];
-
-    $("yc-d-name").textContent = main + " 연휴";
+    var name = mainName(bl);
+    $("yc-d-name").textContent = name + " 연휴";
     $("yc-d-len").textContent = bl.len + "일";
     $("yc-d-span").textContent = fmt(bl.s) + " ~ " + fmt(bl.e);
 
-    var m = days[bl.s].m;
-    $("yc-d-month").textContent = m + "월";
-    var cal = $("yc-d-cal");
-    cal.innerHTML = "";
-    var first = days.filter(function (x) { return x.m === m && x.d === 1; })[0];
-    for (var k = 0; k < first.dow; k += 1) cal.appendChild(el("div", "yc-day pad"));
-    for (var i = first.i; i < days.length && days[i].m === m; i += 1) {
-      var inBlock = i >= bl.s && i <= bl.e;
-      var cls = "yc-day" + (inBlock ? " in" : baseRest[i] ? " off" : "");
-      cal.appendChild(el("div", cls, String(days[i].d)));
+    // 고른 연차를 얹은 상태에서 이어지는 구간을 다시 잰다.
+    var picked = state.picks.slice().sort(function (a, b) { return a - b; });
+    var rest = baseRest.slice();
+    picked.forEach(function (i) { rest[i] = true; });
+    var ra = bl.s, rb = bl.e;
+    while (ra > 0 && rest[ra - 1]) ra -= 1;
+    while (rb < days.length - 1 && rest[rb + 1]) rb += 1;
+
+    var has = picked.length > 0;
+    $("yc-pick-hint").hidden = has;
+    $("yc-pick-sel").hidden = !has;
+    $("yc-pick-span").hidden = !has;
+    $("yc-clear").hidden = !has;
+    if (has) {
+      $("yc-pick-sel").innerHTML = "연차 <em>" + picked.length + "일</em> → <strong>"
+        + (rb - ra + 1) + "일 연휴</strong>";
+      $("yc-pick-span").textContent = fmt(ra) + " ~ " + fmt(rb);
     }
 
-    // 앞 0~2일 + 뒤 0~2일 조합을 전부 만든다. 중간에 이미 쉬는 날이 끼면 무효다.
+    // 연휴 앞뒤로 여유를 두고 주 단위로 잘라 달력을 만든다. 월 경계를 넘을 수 있다.
+    var ws = Math.max(0, Math.min(bl.s, ra) - 3);
+    ws -= days[ws].dow;
+    if (ws < 0) ws = 0;
+    var we = Math.min(days.length - 1, Math.max(bl.e, rb) + 3);
+    we += 6 - days[we].dow;
+    if (we > days.length - 1) we = days.length - 1;
+
+    var mA = days[ws].m, mB = days[we].m;
+    $("yc-d-month").textContent = mA === mB ? mA + "월" : mA + "월 ~ " + mB + "월";
+
+    var cal = $("yc-d-cal");
+    cal.innerHTML = "";
+    for (var k = 0; k < days[ws].dow; k += 1) cal.appendChild(el("div", "yc-day pad"));
+    for (var j = ws; j <= we; j += 1) {
+      var isPick = picked.indexOf(j) >= 0;
+      var inRun = j >= ra && j <= rb && rest[j];
+      var canPick = !baseRest[j];
+      var cls = "yc-day"
+        + (isPick ? " pick" : inRun ? " in" : baseRest[j] ? " off" : "")
+        + (canPick && !isPick ? " open" : "");
+      var cell = el("div", cls, days[j].d === 1 ? days[j].m + "/1" : String(days[j].d));
+      cell.title = fmt(j) + (days[j].hol ? " · " + days[j].hol : "");
+      if (canPick) {
+        cell.setAttribute("role", "button");
+        cell.tabIndex = 0;
+        (function (idx) {
+          function toggle() {
+            var at = state.picks.indexOf(idx);
+            if (at >= 0) state.picks.splice(at, 1);
+            else state.picks.push(idx);
+            renderDetail();
+          }
+          cell.addEventListener("click", toggle);
+          cell.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+          });
+        }(j));
+      }
+      cal.appendChild(cell);
+    }
+
+    renderTiers(bl, name);
+  }
+
+  // 연휴마다 연차를 몇 장 쓰면 어느 거리가 열리는지 계산한다. 연도가 바뀌어도
+  // 그대로 동작해야 해서 표로 박지 않고 매번 구한다.
+  function tiersFor(bl) {
     function grab(from, dir, n) {
       var arr = [], j = from;
       while (arr.length < n) {
@@ -318,37 +388,106 @@
       }
       return arr;
     }
-    var opts = [];
-    for (var f = 0; f <= 2; f += 1) {
-      for (var b = 0; b <= 2; b += 1) {
+    function spanOf(adds) {
+      var a = adds.length ? Math.min.apply(null, adds) : bl.s;
+      var b = adds.length ? Math.max.apply(null, adds) : bl.e;
+      while (a > 0 && (baseRest[a - 1] || adds.indexOf(a - 1) >= 0)) a -= 1;
+      while (b < days.length - 1 && (baseRest[b + 1] || adds.indexOf(b + 1) >= 0)) b += 1;
+      return [a, b];
+    }
+
+    var byLen = {};
+    byLen[bl.len] = { cost: 0, span: [bl.s, bl.e] };
+    for (var f = 0; f <= 3; f += 1) {
+      for (var b = 0; b <= 3; b += 1) {
         if (f + b === 0) continue;
         var fa = f ? grab(bl.s - 1, -1, f) : [];
         var ba = b ? grab(bl.e + 1, 1, b) : [];
         if (fa === null || ba === null) continue;
-        var adds = fa.concat(ba).sort(function (x, y) { return x - y; });
-        opts.push({
-          label: (f ? "앞 " + f + "일" : "") + (f && b ? " + " : "") + (b ? "뒤 " + b + "일" : ""),
-          dates: adds.map(fmt).join(", "), cost: f + b, len: extLen(adds)
-        });
+        var adds = fa.concat(ba);
+        var sp = spanOf(adds);
+        var L = sp[1] - sp[0] + 1;
+        // 같은 길이를 만드는 방법이 여러 개면 연차가 덜 드는 쪽을 남긴다.
+        if (!byLen[L] || f + b < byLen[L].cost) byLen[L] = { cost: f + b, span: sp };
       }
     }
-    opts.sort(function (a, b) { return a.cost - b.cost || b.len - a.len; });
 
-    var ul = $("yc-d-opts");
-    ul.innerHTML = "";
-    if (!opts.length) {
-      ul.appendChild(el("li", "yc-rec-none", "앞뒤가 이미 쉬는 날이라 붙일 자리가 없습니다."));
-    }
-    opts.forEach(function (o) {
-      var li = el("li", "yc-opt");
-      var box = el("div", "yc-opt-main");
-      box.appendChild(el("div", "yc-opt-label", o.label));
-      box.appendChild(el("div", "yc-opt-dates", o.dates));
-      li.appendChild(box);
-      li.appendChild(el("span", "yc-opt-cost", "연차 " + o.cost + "일"));
-      li.appendChild(el("span", "yc-opt-len", o.len + "일"));
-      ul.appendChild(li);
+    var out = [], taken = {};
+    Object.keys(byLen).map(Number).sort(function (a, b) { return a - b; })
+      .forEach(function (L) {
+        var t = tripFor(L);
+        if (!t || taken[t.label]) return;
+        taken[t.label] = true;
+        out.push({ trip: t, len: L, cost: byLen[L].cost, span: byLen[L].span });
+      });
+    return out;
+  }
+
+  function renderTiers(bl, name) {
+    var tiers = tiersFor(bl);
+
+    // 그 해에서 장거리를 가장 적은 연차로 여는 연휴에 표시를 준다.
+    var best = null;
+    holidayBlocks().forEach(function (b) {
+      tiersFor(b).forEach(function (t) {
+        if (t.trip.min < 7) return;
+        if (!best || t.cost < best.cost) best = { name: mainName(b), cost: t.cost, len: t.len };
+      });
     });
+    var isBest = best && best.name === name;
+    $("yc-d-best").hidden = !isBest;
+    if (isBest) {
+      $("yc-d-best").querySelector("span").textContent =
+        "연차 " + best.cost + "일로 " + best.len + "일까지 늘어나는 유일한 연휴입니다";
+    }
+
+    var host = $("yc-d-trips");
+    host.innerHTML = "";
+    tiers.forEach(function (t) {
+      var card = el("div", "yc-tier");
+
+      var head = el("div", "yc-tier-head");
+      var cost = el("div", "yc-tier-cost");
+      if (t.cost === 0) {
+        cost.className += " free";
+        cost.innerHTML = "연차<br>없이";
+      } else {
+        cost.innerHTML = "<b>" + t.cost + "</b>일<em>연차 필요</em>";
+      }
+      head.appendChild(cost);
+
+      var meta = el("div", "yc-tier-meta");
+      var title = el("div", "yc-tier-title", t.trip.label + " ");
+      title.appendChild(el("span", "yc-tier-desc", t.trip.desc));
+      meta.appendChild(title);
+      meta.appendChild(el("div", "yc-tier-span", shortFmt(t.span[0]) + " ~ " + shortFmt(t.span[1])));
+      head.appendChild(meta);
+      head.appendChild(el("div", "yc-tier-len", t.len + "일"));
+      card.appendChild(head);
+
+      var grid = el("div", "yc-cities");
+      t.trip.cities.forEach(function (pair) {
+        var a = document.createElement("a");
+        a.href = flightLink(pair[0], t.span[0], t.span[1]);
+        a.target = "_blank";
+        a.rel = "nofollow sponsored noopener";
+        a.className = "yc-city";
+
+        var box = el("div", "yc-city-img");
+        var img = document.createElement("img");
+        img.src = "/images/cities/" + pair[0] + ".jpg";
+        img.alt = pair[1];
+        img.loading = "lazy";
+        box.appendChild(img);
+        a.appendChild(box);
+        a.appendChild(el("span", "yc-city-name", pair[1]));
+        grid.appendChild(a);
+      });
+      card.appendChild(grid);
+      host.appendChild(card);
+    });
+    $("yc-d-trips-box").hidden = tiers.length === 0;
+    $("yc-d-badge").hidden = !AFFILIATE.aid;
   }
 
   function renderYearGrid() {
@@ -418,12 +557,84 @@
     });
   }
 
+  function iso(i) {
+    var x = days[i];
+    return state.year + "-" + (x.m < 10 ? "0" : "") + x.m + "-" + (x.d < 10 ? "0" : "") + x.d;
+  }
+
+  // 며칠이면 어디까지 가느냐. 연차를 하루 더 쓸지 판단하는 근거가 된다.
+  function tripFor(len) {
+    for (var i = 0; i < TRIPS.length; i += 1) {
+      if (len >= TRIPS[i].min && len <= TRIPS[i].max) return TRIPS[i];
+    }
+    return null;
+  }
+
+  function flightLink(city, from, to) {
+    var q = "dcity=sel&acity=" + city + "&ddate=" + iso(from) + "&rdate=" + iso(to)
+      + "&triptype=rt&class=y&quantity=1&locale=ko-KR&curr=KRW";
+    if (AFFILIATE.aid) q += "&aid=" + AFFILIATE.aid + "&sid=" + AFFILIATE.sid;
+    return "https://kr.trip.com/flights/showfarefirst?" + q;
+  }
+
+  // 연휴 길이별로 그 해에 실제 있는 가장 긴 구간을 골라 날짜가 채워진 링크를 만든다.
+  // "9일이면 유럽" 같은 말만 두면 사용자가 날짜를 다시 찾아 넣어야 한다.
+  function renderTrips() {
+    var c = current();
+    var blocks = c.blocks.filter(function (b) { return b.len >= 3; })
+      .sort(function (a, b) { return b.len - a.len; });
+
+    var host = $("yc-trips");
+    host.innerHTML = "";
+    var used = {};
+    var shown = 0;
+
+    TRIPS.forEach(function (t) {
+      // 길이 구간이 맞는 것 중 가장 긴 것. 하한만 보면 근거리 줄에 6일 연휴가 붙는다.
+      var hit = null;
+      for (var i = 0; i < blocks.length; i += 1) {
+        var b = blocks[i];
+        if (b.len < t.min || b.len > t.max || used[b.s]) continue;
+        hit = b;
+        break;
+      }
+      if (!hit) return;
+      used[hit.s] = true;
+      shown += 1;
+
+      var row = el("li", "yc-trip");
+      var head = el("div", "yc-trip-head");
+      head.appendChild(el("span", "yc-days", hit.len + "일"));
+      var meta = el("div", "yc-trip-meta");
+      meta.appendChild(el("div", "yc-trip-desc", t.label + " · " + t.desc));
+      meta.appendChild(el("div", "yc-trip-date", shortFmt(hit.s) + " ~ " + shortFmt(hit.e)));
+      head.appendChild(meta);
+      row.appendChild(head);
+
+      var links = el("div", "yc-trip-links");
+      t.cities.forEach(function (pair) {
+        var a = document.createElement("a");
+        a.href = flightLink(pair[0], hit.s, hit.e);
+        a.target = "_blank";
+        a.rel = "nofollow sponsored noopener";
+        a.textContent = pair[1];
+        links.appendChild(a);
+      });
+      row.appendChild(links);
+      host.appendChild(row);
+    });
+
+    $("yc-trips-box").hidden = shown === 0;
+    $("yc-trips-badge").hidden = !AFFILIATE.aid;
+  }
+
   function render() {
     renderYears();
     $("yc-leave").value = state.leave;
     $("yc-leave-val").textContent = state.leave;
     renderResult();
     renderCards();
+    renderTrips();
     if (state.screen === "detail") renderDetail();
     if (state.screen === "year") renderYearGrid();
   }
@@ -516,6 +727,7 @@
   });
 
   $("yc-back").addEventListener("click", function () { go("home"); });
+  $("yc-clear").addEventListener("click", function () { state.picks = []; renderDetail(); });
   $("yc-share-sq").addEventListener("click", function () { share(1080, 1080); });
   $("yc-share-story").addEventListener("click", function () { share(1080, 1920); });
 

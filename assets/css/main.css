@@ -423,6 +423,7 @@ p { margin: 0 0 14px; }
     --dim: #c9d4cf;
     --chip: #eef4f1;
     --leave: #c98f2e;
+    --leave-soft: #f6ecd9;
     --num: "SF Mono", ui-monospace, Menlo, monospace;
 }
 @media (prefers-color-scheme: dark) {
@@ -432,6 +433,7 @@ p { margin: 0 0 14px; }
         --dim: #3a473f;
         --chip: #1d2823;
         --leave: #dfb05a;
+        --leave-soft: #33290f;
     }
 }
 
@@ -567,13 +569,53 @@ p { margin: 0 0 14px; }
 .yc-day.off { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
 .yc-day.in { background: var(--accent); color: #fff; font-weight: 800; }
 
-.yc-opts { list-style: none; margin: 0; padding: 0; }
-.yc-opt { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); }
-.yc-opt-main { flex: 1; min-width: 0; }
-.yc-opt-label { font-size: 13px; font-weight: 700; }
-.yc-opt-dates { font-size: 12px; color: var(--muted); margin-top: 1px; }
-.yc-opt-cost { font-size: 12px; color: var(--muted); white-space: nowrap; }
-.yc-opt-len { font-size: 16px; font-weight: 800; color: var(--accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* 달력을 눌러 연차를 찍는다 */
+.yc-pick-head { display: flex; align-items: center; gap: 10px; min-height: 34px; }
+.yc-pick-info { flex: 1; min-width: 0; }
+.yc-pick-sel { font-size: 14px; font-weight: 700; color: var(--ink) !important; }
+.yc-pick-sel em { color: var(--leave); font-style: normal; }
+.yc-pick-sel strong { color: var(--accent); }
+.yc-pick-span { font-size: 12px; color: var(--muted); margin-top: 1px !important; font-variant-numeric: tabular-nums; }
+.yc-pick-hint { font-size: 13px; color: var(--muted); }
+.yc-clear {
+    border: 1px solid var(--line); background: transparent; color: var(--muted);
+    font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 99px;
+    cursor: pointer; flex-shrink: 0;
+}
+.yc-day { border: 1px solid transparent; box-sizing: border-box; }
+.yc-day.open { border: 1px dashed var(--dim); cursor: pointer; }
+.yc-day.open:hover { border-color: var(--leave); }
+.yc-day.in { background: var(--accent); color: #fff; font-weight: 800; }
+.yc-day.pick { background: var(--leave); border-color: var(--leave); color: #fff; font-weight: 800; cursor: pointer; }
+
+/* 거리 단계 카드 */
+.yc-tiers { display: flex; flex-direction: column; gap: 8px; }
+.yc-tier { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 10px; }
+.yc-tier-head { display: flex; align-items: center; gap: 12px; }
+.yc-tier-cost { width: 72px; flex-shrink: 0; line-height: 1; }
+.yc-tier-cost b { font-size: 26px; font-weight: 800; color: var(--leave); font-variant-numeric: tabular-nums; }
+.yc-tier-cost em { display: block; font-size: 11px; color: var(--muted); font-style: normal; margin-top: 3px; }
+.yc-tier-cost.free { font-size: 14px; font-weight: 800; color: var(--accent); line-height: 1.2; }
+.yc-tier-meta { flex: 1; min-width: 0; }
+.yc-tier-title { font-size: 15px; font-weight: 700; }
+.yc-tier-desc { font-weight: 400; color: var(--muted); font-size: 13px; }
+.yc-tier-span { font-size: 12px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.yc-tier-len { font-size: 26px; font-weight: 800; color: var(--accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.yc-cities { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.yc-city { text-decoration: none; color: var(--ink); display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.yc-city-img { width: 100%; aspect-ratio: 4 / 5; border-radius: 10px; overflow: hidden; background: var(--chip); }
+.yc-city-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.yc-city-name { font-size: 13px; font-weight: 700; text-align: center; }
+.yc-city-name::after { content: " ↗"; color: var(--muted); font-weight: 400; }
+.yc-city:hover .yc-city-name { color: var(--accent); }
+
+.yc-best {
+    display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+    padding: 10px 12px; border-radius: 10px;
+    background: var(--leave-soft); font-size: 13px; margin: 0 0 8px;
+}
+.yc-best b { color: var(--leave); }
 
 /* 연도 전체 */
 .yc-year-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
@@ -636,4 +678,35 @@ p { margin: 0 0 14px; }
 @media (max-width: 560px) {
     .yc-ycell { font-size: 0; }
     .yc-ytick { font-size: 8px; }
+}
+
+/* 연휴 길이별 항공권 링크 */
+.yc-travel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.yc-badge { font-size: 11px; color: var(--muted); border: 1px solid var(--line); padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.yc-travel-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.yc-trip { display: flex; flex-direction: column; gap: 6px; }
+.yc-trip + .yc-trip { border-top: 1px solid var(--line); padding-top: 12px; }
+.yc-trip-head { display: flex; align-items: center; gap: 12px; }
+.yc-trip-meta { flex: 1; min-width: 0; }
+.yc-trip-desc { font-size: 13px; font-weight: 600; }
+.yc-trip-date { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.yc-trip-links { display: flex; gap: 8px; flex-wrap: wrap; padding-left: 48px; }
+.yc-trip-links a {
+    font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none;
+    border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px;
+}
+.yc-trip-links a:hover { border-color: var(--accent); text-decoration: none; }
+.yc-travel-note { font-size: 12px; color: var(--muted); }
+@media (max-width: 380px) { .yc-trip-links { padding-left: 0; } }
+
+/* 카드 클릭 유도와 상세 화면 거리 표시 */
+.yc-holi-more { font-size: 12px; font-weight: 600; color: var(--accent); }
+.yc-holi:hover .yc-holi-more { text-decoration: underline; }
+.yc-opt-trip { font-size: 11px; color: var(--accent); font-weight: 600; margin-top: 2px; }
+
+/* 도시 3칸이 360px 에서 한 칸 100px 안쪽이 된다. 사진은 그래도 읽힌다. */
+@media (max-width: 380px) {
+    .yc-tier-cost { width: 60px; }
+    .yc-tier-cost b, .yc-tier-len { font-size: 22px; }
+    .yc-cities { gap: 6px; }
 }
