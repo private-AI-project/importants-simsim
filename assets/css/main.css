@@ -413,3 +413,227 @@ p { margin: 0 0 14px; }
     .pname { width: 60px; font-size: 13px; }
     .result-actions .btn { flex: 1; min-width: 0; }
 }
+
+/* ── 연차 계산기 ───────────────────────────────────────────────────
+   디자인이 딥민트(#0e9f6e) 기준으로 나왔다. 심심풀이 본체는 보라(#6c4cf1)라
+   전역 변수를 덮으면 다른 페이지가 같이 바뀐다. 이 페이지 안에서만 갈아끼운다. */
+.yeoncha {
+    --accent: #0e9f6e;
+    --accent-soft: #e4f4ed;
+    --dim: #c9d4cf;
+    --chip: #eef4f1;
+    --leave: #c98f2e;
+    --num: "SF Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+    .yeoncha {
+        --accent: #2cc08c;
+        --accent-soft: #12352a;
+        --dim: #3a473f;
+        --chip: #1d2823;
+        --leave: #dfb05a;
+    }
+}
+
+.yeoncha { display: flex; flex-direction: column; gap: 16px; }
+.yeoncha b, .yeoncha strong { font-weight: 800; }
+
+/* display 를 지정한 요소는 브라우저 기본 [hidden]{display:none} 을 이겨 버린다.
+   아래 .yc-screen 이 flex 라서, 이 규칙이 없으면 네 화면이 한꺼번에 보인다. */
+.yeoncha [hidden] { display: none; }
+
+.yc-nav { display: flex; gap: 2px; background: var(--chip); border-radius: 99px; padding: 3px; align-self: flex-start; }
+.yc-nav button {
+    border: none; background: transparent; color: var(--muted);
+    border-radius: 99px; padding: 7px 14px; font: inherit;
+    font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.yc-nav button.on { background: var(--card); color: var(--accent); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+
+.yc-screen { display: flex; flex-direction: column; gap: 14px; }
+.yc-cols { display: flex; flex-direction: column; gap: 16px; }
+.yc-left, .yc-right { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+.yc-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 16px; }
+.yc-card > * { margin: 0; }
+.yc-card > * + * { margin-top: 10px; }
+.yc-sub { font-size: 15px; font-weight: 700; margin: 0; }
+.yc-card h3 { font-size: 14px; font-weight: 700; margin: 0 0 6px; }
+.yc-card p { font-size: 14px; color: var(--muted); margin: 0; }
+
+/* 연도 선택 */
+.yc-years { display: flex; gap: 8px; }
+.yc-years button {
+    flex: 1; padding: 11px 0; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--chip); color: var(--muted);
+    font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+}
+.yc-years button.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+
+/* 연차 입력 */
+.yc-leave-head { display: flex; align-items: baseline; justify-content: space-between; }
+.yc-leave-head > span:first-child { font-size: 14px; color: var(--muted); font-weight: 600; }
+.yc-leave-num { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 15px; }
+.yc-leave-num b { font-size: 32px; color: var(--ink); }
+.yeoncha input[type=range] { width: 100%; height: 44px; margin: 0; accent-color: var(--accent); }
+.yc-scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.yc-seg { display: flex; gap: 4px; background: var(--chip); border-radius: 10px; padding: 4px; }
+.yc-seg button {
+    flex: 1; padding: 10px 0; border: none; border-radius: 8px;
+    background: transparent; color: var(--muted);
+    font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.yc-seg button.on { background: var(--card); color: var(--accent); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+
+/* 첫 진입 안내 */
+.yc-empty { border-style: dashed; text-align: center; padding: 28px 20px; }
+.yc-empty-title { font-size: 15px; font-weight: 700; color: var(--ink) !important; }
+.yc-empty-sub { font-size: 13px; }
+
+/* 결과 */
+.yc-result { border-color: var(--accent); }
+.yc-result-lead { font-size: 14px; }
+.yc-result-lead b { color: var(--ink); }
+.yc-result-big { font-size: 15px; margin-top: 6px !important; color: var(--ink) !important; }
+.yc-result-big strong { font-size: 44px; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1; }
+.yc-result-note { font-size: 12px; color: var(--muted); margin-top: 6px !important; }
+.yc-remain { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
+.yc-remain b { color: var(--ink); }
+
+.yc-recs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.yc-rec { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); }
+.yc-rec-main { flex: 1; min-width: 0; }
+.yc-rec-title { font-size: 14px; font-weight: 700; }
+.yc-rec-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.yc-rec-len { font-size: 18px; font-weight: 800; color: var(--accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.yc-rec-none { font-size: 13px; color: var(--muted); }
+
+.yc-share { display: flex; gap: 8px; }
+.yc-share .btn { flex: 1; min-width: 0; padding: 13px 0; font-size: 14px; }
+.yeoncha .btn.ghost { border-color: var(--accent); color: var(--accent); }
+
+/* 연휴 카드 */
+#yc-cards { display: flex; flex-direction: column; gap: 12px; }
+.yc-holi {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px; display: flex; flex-direction: column; gap: 10px; cursor: pointer;
+}
+.yc-holi:hover { border-color: var(--accent); }
+.yc-holi.rec { border-color: var(--accent); }
+.yc-holi-head { display: flex; align-items: center; gap: 8px; }
+.yc-holi-left { flex: 1; min-width: 0; }
+.yc-holi-title { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.yc-holi-name { font-size: 15px; font-weight: 700; }
+.yc-holi-span { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.yc-holi-len { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.yc-holi.rec .yc-holi-len { color: var(--accent); }
+.yc-tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.yc-tag.next { color: var(--accent); background: var(--accent-soft); }
+.yc-tag.rec { color: #fff; background: var(--accent); }
+
+.yc-strip { display: flex; gap: 3px; background: var(--chip); border-radius: 10px; padding: 8px 4px; }
+.yc-cell { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.yc-cell-w { font-size: 10px; color: var(--muted); }
+.yc-cell-d { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.yc-dot { width: 10px; height: 10px; border-radius: 99px; border: 1.5px solid var(--dim); box-sizing: border-box; }
+.yc-cell.off .yc-dot { background: var(--accent); border-color: var(--accent); }
+.yc-cell.off .yc-cell-d { color: var(--ink); font-weight: 700; }
+.yc-cell.leave .yc-dot { background: var(--leave); border-color: var(--leave); }
+.yc-cell.leave .yc-cell-d { color: var(--ink); font-weight: 700; }
+
+.yc-sugs { display: flex; flex-direction: column; gap: 4px; }
+.yc-sug { font-size: 13px; color: var(--muted); }
+.yc-sug b { color: var(--ink); }
+.yc-sug strong { color: var(--accent); }
+
+.yc-travel-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.yc-travel-list li { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+.yc-days { font-size: 16px; font-weight: 800; color: var(--accent); width: 36px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+
+/* 상세 */
+.yc-back { align-self: flex-start; border: none; background: none; color: var(--accent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; padding: 4px 0; }
+.yc-detail-head { display: flex; align-items: baseline; gap: 10px; }
+.yc-detail-head h2 { font-size: 20px; font-weight: 800; margin: 0; }
+.yc-d-len { font-size: 20px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+.yc-d-span { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
+.yc-cal-month { font-size: 13px; font-weight: 700; margin: 0 0 10px; }
+.yc-cal-dow, .yc-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.yc-cal-dow { font-size: 11px; color: var(--muted); text-align: center; margin-bottom: 6px; }
+.yc-day {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; font-size: 13px; font-variant-numeric: tabular-nums;
+}
+.yc-day.off { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.yc-day.in { background: var(--accent); color: #fff; font-weight: 800; }
+
+.yc-opts { list-style: none; margin: 0; padding: 0; }
+.yc-opt { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); }
+.yc-opt-main { flex: 1; min-width: 0; }
+.yc-opt-label { font-size: 13px; font-weight: 700; }
+.yc-opt-dates { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.yc-opt-cost { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.yc-opt-len { font-size: 16px; font-weight: 800; color: var(--accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* 연도 전체 */
+.yc-year-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.yc-legend { display: flex; gap: 12px; font-size: 11px; color: var(--muted); }
+.yc-legend span { display: flex; align-items: center; gap: 4px; }
+.yc-legend i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+.yc-legend .sw-hol { background: var(--accent); }
+.yc-legend .sw-wk { background: var(--dim); }
+.yc-legend .sw-lv { background: var(--leave); }
+#yc-year-grid { display: flex; flex-direction: column; gap: 6px; }
+.yc-yrow { display: flex; align-items: center; gap: 8px; }
+.yc-ylabel { width: 30px; font-size: 11px; color: var(--muted); text-align: right; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.yc-ygrid { flex: 1; display: grid; grid-template-columns: repeat(31, 1fr); gap: 2px; min-width: 0; }
+.yc-ycell { aspect-ratio: 1; border-radius: 2px; background: var(--chip); }
+.yc-ycell.pad { background: transparent; }
+.yc-ycell.wk { background: var(--dim); }
+.yc-ycell.hol { background: var(--accent); }
+.yc-ycell.leave { background: var(--leave); }
+
+.yc-about p { line-height: 1.8; }
+
+/* 데스크톱은 2단. 왼쪽 계산 패널을 고정해 두면 카드를 훑으면서 슬라이더를 만질 수 있다. */
+@media (min-width: 1024px) {
+    .yeoncha { max-width: 980px; }
+    .yc-cols { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 24px; align-items: start; }
+    .yc-left { position: sticky; top: 16px; }
+}
+
+/* 요일 띠가 7~9칸이라 360px 에서 한 칸이 38px 안쪽이 된다. */
+@media (max-width: 380px) {
+    .yc-strip { gap: 2px; padding: 8px 3px; }
+    .yc-cell-w, .yc-cell-d { font-size: 10px; }
+    .yc-result-big strong { font-size: 38px; }
+    .yc-share { flex-direction: column; }
+}
+
+/* .wrap 이 680px 로 묶여 있어서 2단이 들어가지 않는다. 이 페이지가 든 래퍼만 넓힌다. */
+@media (min-width: 1024px) {
+    .wrap:has(.yeoncha) { max-width: 1020px; }
+}
+
+/* 연도 전체: 날짜 눈금과 연차 날짜 목록 */
+.yc-yhead { margin-bottom: 2px; }
+.yc-ytick {
+    font-size: 9px; color: var(--muted); text-align: center;
+    font-variant-numeric: tabular-nums; line-height: 1; min-width: 0;
+    overflow: hidden;
+}
+.yc-ycell {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 800; color: #3a2d10;
+    font-variant-numeric: tabular-nums; line-height: 1; overflow: hidden;
+}
+.yc-ydays { display: flex; flex-direction: column; gap: 6px; }
+.yc-yday { display: flex; gap: 10px; font-size: 13px; align-items: baseline; }
+.yc-yday-m { width: 32px; flex-shrink: 0; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+.yc-yday-d { color: var(--ink); }
+
+/* 칸이 10px 안쪽이면 숫자를 넣을 자리가 없다. 아래 목록으로 대신 읽는다. */
+@media (max-width: 560px) {
+    .yc-ycell { font-size: 0; }
+    .yc-ytick { font-size: 8px; }
+}
