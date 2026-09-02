@@ -6,6 +6,7 @@
   {{- $byYear = merge $byYear (dict $year $file.holidays) -}}
 {{- end -}}
 <script type="application/json" id="yc-data">{{ $byYear | jsonify | safeJS }}</script>
+<script type="application/json" id="yc-cities">{{ index hugo.Data "city-credits" | jsonify | safeJS }}</script>
 
 <article class="game yeoncha" id="yc-app">
     <p class="quiz-cat">{{ .Params.category }}</p>
@@ -64,13 +65,13 @@
                 <h2 class="yc-sub" id="yc-cards-title">2027년 연휴</h2>
                 <div id="yc-cards"></div>
 
-                <section class="yc-card yc-travel">
-                    <h3 class="yc-sub">연휴 길이별 여행 거리</h3>
-                    <ul class="yc-travel-list">
-                        <li><span class="yc-days">9일</span><span>유럽, 미주 장거리</span></li>
-                        <li><span class="yc-days">5일</span><span>동남아, 일본 지방 도시</span></li>
-                        <li><span class="yc-days">3일</span><span>국내, 일본 근거리</span></li>
-                    </ul>
+                <section class="yc-card yc-travel" id="yc-trips-box">
+                    <div class="yc-travel-head">
+                        <h3 class="yc-sub">연휴 길이로 갈 수 있는 곳</h3>
+                        <span class="yc-badge" id="yc-trips-badge" hidden>제휴 링크 포함</span>
+                    </div>
+                    <ul class="yc-travel-list" id="yc-trips"></ul>
+                    <p class="yc-travel-note">날짜가 입력된 항공권 검색 화면으로 이동합니다. 출발지는 인천 기준입니다.</p>
                 </section>
             </div>
         </div>
@@ -85,14 +86,30 @@
         <p class="yc-d-span" id="yc-d-span"></p>
 
         <section class="yc-card">
+            <div class="yc-pick-head">
+                <div class="yc-pick-info">
+                    <p class="yc-pick-sel" id="yc-pick-sel" hidden></p>
+                    <p class="yc-pick-span" id="yc-pick-span" hidden></p>
+                    <p class="yc-pick-hint" id="yc-pick-hint">쉬고 싶은 날을 누르면 연차로 채워집니다</p>
+                </div>
+                <button type="button" class="yc-clear" id="yc-clear" hidden>지우기</button>
+            </div>
             <h3 class="yc-cal-month" id="yc-d-month"></h3>
             <div class="yc-cal-dow"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
             <div class="yc-cal" id="yc-d-cal"></div>
         </section>
 
-        <section class="yc-card">
-            <h3 class="yc-sub">연차를 붙이는 선택지</h3>
-            <ul class="yc-opts" id="yc-d-opts"></ul>
+        <section id="yc-d-trips-box">
+            <div class="yc-travel-head">
+                <h3 class="yc-sub">이 연휴에 갈 수 있는 곳</h3>
+                <span class="yc-badge" id="yc-d-badge" hidden>제휴 링크 포함</span>
+            </div>
+            <p class="yc-best" id="yc-d-best" hidden>
+                <b>올해 최고 효율</b>
+                <span></span>
+            </p>
+            <div class="yc-tiers" id="yc-d-trips"></div>
+            <p class="yc-travel-note">항공권 검색 화면에 연휴 날짜가 미리 입력됩니다. 출발지는 인천 기준입니다.</p>
         </section>
     </section>
 
@@ -123,7 +140,7 @@
         </section>
         <section class="yc-card">
             <h3>계산 방식</h3>
-            <p>주말과 공휴일 사이의 평일에 연차를 놓아 이어 쉬는 기간을 만듭니다. "긴 연휴 우선"은 가장 긴 연속 휴일을, "자주 쉬기"는 연차 1일당 효율을 앞세웁니다. 총 쉬는 날은 3일 이상 이어지는 기간의 합계입니다.</p>
+            <p>주말과 공휴일 사이의 평일에 연차를 써서 이어 쉬는 기간을 만듭니다. "긴 연휴 우선"은 가장 긴 연속 휴일을, "자주 쉬기"는 연차 1일당 효율을 앞세웁니다. 총 쉬는 날은 3일 이상 이어지는 기간의 합계입니다.</p>
         </section>
         <section class="yc-card">
             <h3>주의</h3>

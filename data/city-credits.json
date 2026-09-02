@@ -1,0 +1,56 @@
+{
+ "osa": {
+  "name": "오사카",
+  "photographer": "Liuuu _61",
+  "url": "https://www.pexels.com/photo/stunning-view-of-osaka-castle-in-full-summer-glory-30813051/",
+  "alt": "The iconic Osaka Castle surrounded by lush greenery under a clear blue sky."
+ },
+ "fuk": {
+  "name": "후쿠오카",
+  "photographer": "Chris",
+  "url": "https://www.pexels.com/photo/a-street-with-a-view-on-a-mountain-18132303/",
+  "alt": "Picturesque street scene in Kurume, Japan with distant mountain views and traditional architecture."
+ },
+ "tpe": {
+  "name": "타이베이",
+  "photographer": "Wei86 Travel",
+  "url": "https://www.pexels.com/photo/night-view-of-taipei-101-in-taiwan-cityscape-34332954/",
+  "alt": "Stunning night view of Taipei 101 standing out in the illuminated Taipei city skyline."
+ },
+ "bkk": {
+  "name": "방콕",
+  "photographer": "RJ Segotier",
+  "url": "https://www.pexels.com/photo/majestic-wat-arun-temple-in-bangkok-thailand-30970845/",
+  "alt": "Stunning view of Wat Arun, a famous Buddhist temple in Bangkok, Thailand."
+ },
+ "dad": {
+  "name": "다낭",
+  "photographer": "Pragyan Bezbaruah",
+  "url": "https://www.pexels.com/photo/da-nang-city-name-on-beach-26550066/",
+  "alt": "Capture of the vibrant Danang beach sign against a clear blue sky in Vietnam."
+ },
+ "sin": {
+  "name": "싱가포르",
+  "photographer": "Bey The Great",
+  "url": "https://www.pexels.com/photo/marina-bay-in-singapore-18280158/",
+  "alt": "Dramatic view of Marina Bay Sands, Singapore's iconic skyline at dusk."
+ },
+ "par": {
+  "name": "파리",
+  "photographer": "Rajkumar Bhandari",
+  "url": "https://www.pexels.com/photo/low-angle-photo-of-eiffel-tower-under-cloudy-sky-14763491/",
+  "alt": "Capture of the Eiffel Tower from a low angle, showcasing its intricate steel structure."
+ },
+ "rom": {
+  "name": "로마",
+  "photographer": "Joan Costa",
+  "url": "https://www.pexels.com/photo/majestic-view-of-the-colosseum-interior-rome-36396954/",
+  "alt": "A breathtaking aerial shot of the Colosseum's interior architecture in Rome, Italy."
+ },
+ "bcn": {
+  "name": "바르셀로나",
+  "photographer": "Evans Joel",
+  "url": "https://www.pexels.com/photo/intricate-columns-inside-la-sagrada-familia-32422836/",
+  "alt": "Detailed view of the architectural columns within La Sagrada Familia in Barcelona."
+ }
+}
