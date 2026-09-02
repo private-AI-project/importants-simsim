@@ -34,10 +34,12 @@
         "description" .summary
         "kind" "page"
         "layout" "result"
+        "sitemap" (dict "disable" true)
         "params" (dict
           "quizSlug" $slug
           "resultId" .id
           "isResult" true
+          "noindex" true
           "ogImage" (default (default site.Params.defaultOgImage $q.ogImage) .ogImage)
         )
     ) }}

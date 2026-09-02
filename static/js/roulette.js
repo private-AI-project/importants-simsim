@@ -155,6 +155,8 @@
       ctxState = cx;
       $("setup").hidden = true;
       $("stage").hidden = false;
+      fit();   // 숨김이 풀린 뒤라야 실제 크기를 잴 수 있다
+      canvas.scrollIntoView({ behavior: "smooth", block: "center" });
       draw(cx.entries);
       spin(cx);
     }
@@ -183,10 +185,22 @@
 
   function fit() {
     var ratio = window.devicePixelRatio || 1;
-    canvas.width = SIZE * ratio;
-    canvas.height = SIZE * ratio;
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    var box = canvas.getBoundingClientRect();
+    var cssW = box.width || SIZE;
+    canvas.width = Math.round(cssW * ratio);
+    canvas.height = Math.round(cssW * ratio);
+    var scale = (cssW / SIZE) * ratio;
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
   }
+
+  var fitTimer = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(fitTimer);
+    fitTimer = setTimeout(function () {
+      fit();
+      if (ctxState) draw(ctxState.entries);
+    }, 150);
+  });
 
   // 테스트용 노출. 바늘이 정말 의도한 칸에 서는지 각도로 검증한다.
   window.__roulette = {

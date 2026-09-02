@@ -8,6 +8,10 @@
 <title>{{ $title }}</title>
 <meta name="description" content="{{ $desc }}">
 <link rel="canonical" href="{{ .Permalink }}">
+{{- if .Params.noindex }}
+{{/* 결과 페이지는 공유 미리보기용이다. 검색에 노출되면 테스트를 건너뛰고 결과만 보게 된다. */}}
+<meta name="robots" content="noindex, follow">
+{{- end }}
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{{ site.Title }}">

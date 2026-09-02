@@ -283,6 +283,8 @@
     $("setup").hidden = true;
     $("stage").hidden = false;
     $("result").hidden = true;
+    fit();   // 숨김이 풀린 뒤라야 실제 크기를 잴 수 있다
+    canvas.scrollIntoView({ behavior: "smooth", block: "center" });
     requestAnimationFrame(tick);
   }
 
@@ -362,12 +364,23 @@
     return lines;
   });
 
+  // 캔버스 박스가 좁아지면 그리기 배율도 같이 줄여야 한다.
+  // 안 그러면 420x520 그대로 그려서 화면 밖으로 넘어간다.
   function fit() {
     var ratio = window.devicePixelRatio || 1;
-    canvas.width = W * ratio;
-    canvas.height = H * ratio;
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    var box = canvas.getBoundingClientRect();
+    var cssW = box.width || W;
+    canvas.width = Math.round(cssW * ratio);
+    canvas.height = Math.round(cssW * (H / W) * ratio);
+    var scale = (cssW / W) * ratio;
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
   }
+
+  var fitTimer = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(fitTimer);
+    fitTimer = setTimeout(function () { fit(); draw(); }, 150);
+  });
 
   // 테스트용 노출. 조작 성공률과 공정성을 node로 잰다.
   window.__ladder = {

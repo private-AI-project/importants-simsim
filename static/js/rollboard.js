@@ -2,9 +2,13 @@
 //
 // 이름을 넣으면 구슬이 코스를 내려가며 순위를 정한다. 커피 내기, 발표 순서, 벌칙 정하기용이다.
 //
-// 구슬마다 능력치 넷(속도·무게·운·근성)이 붙고, 경주 중에는 컨디션이 실시간으로 오르내린다.
-// 능력치는 판마다 새로 굴리고 총합이 모두 같다. 판을 반복하면 누구나 공평하되,
-// 한 판 안에서는 분명히 영향을 줘서 시작 전에 누구에게 걸지 고를 거리가 생긴다.
+// 구슬마다 스킬이 하나씩 붙는다. 스킬은 굴릴 때마다 다시 뽑는다.
+// 사람에게 고정하면 센 스킬을 받은 사람이 계속 이겨서 뽑기로 못 쓴다(실제로 한 명이 45%를 이겼다).
+// 스킬은 준비 화면에서 감추고 경주가 시작되면 공개한다. 미리 알면 볼 재미가 준다.
+//
+// 방장 조작은 넣지 않는다. 분신술·자리바꿈·밀치기가 판을 뒤섞어서 미는 힘이 묻힌다.
+// 실제로 붙여보니 성공률이 18~38%에 그쳤다. 다른 게임은 100%다.
+// 안 먹는 조작 버튼은 없느니만 못하다.
 //
 // 서버가 없다. 이름도 결과도 브라우저 밖으로 나가지 않는다.
 
@@ -15,7 +19,7 @@
   if (!canvas) return;
 
   var W = 420;            // 논리 가로
-  var VIEW_H = 700;       // 화면에 보이는 높이
+  var VIEW_H = 700;       // 화면에 보이는 논리 높이. fit() 에서 실제 박스 비율에 맞춰 다시 잡는다.
   var COURSE_H = 3600;    // 코스 전체 길이
   var FINISH_Y = COURSE_H - 160;
   var R = 10;             // 구슬 반지름
@@ -23,10 +27,6 @@
   var SUB = 4;
   var MAX_MARBLES = 12;
   var MAX_SPEED = 1400;
-
-  var STAT_TOTAL = 20;    // 능력치 총합. 모두 같아야 판이 공평하다.
-  var STAT_MIN = 2;
-  var STAT_MAX = 8;
 
   var ctx = canvas.getContext("2d");
 
@@ -114,36 +114,12 @@
     return true;
   }
 
-  // ── 능력치 ────────────────────────────────────────────────
-
-  var STATS = [
-    { key: "speed", name: "속도", desc: "내려가는 가속이 붙습니다" },
-    { key: "power", name: "무게", desc: "부딪혀도 안 밀리고 상대를 밀어냅니다" },
-    { key: "luck", name: "운", desc: "돌발 상황이 좋은 쪽으로 터질 확률입니다" },
-    { key: "spirit", name: "근성", desc: "컨디션이 크게 오르내립니다" }
-  ];
-
-  // 총합을 고정해 굴린다. 총합이 다르면 그 자체로 유불리가 생겨 내기가 성립하지 않는다.
-  function rollStats() {
-    var s = { speed: STAT_MIN, power: STAT_MIN, luck: STAT_MIN, spirit: STAT_MIN };
-    var keys = ["speed", "power", "luck", "spirit"];
-    var left = STAT_TOTAL - STAT_MIN * keys.length;
-    while (left > 0) {
-      var k = keys[Math.floor(Math.random() * keys.length)];
-      if (s[k] >= STAT_MAX) continue;
-      s[k] += 1;
-      left -= 1;
-    }
-    return s;
-  }
-
-  // ── 돌발 상황 ─────────────────────────────────────────────
+  // ── 스킬 ──────────────────────────────────────────────────
   //
-  // 예전에는 구슬마다 고정 능력을 하나씩 줬는데, 능력 뽑기가 곧 승부가 돼서
-  // 강한 능력을 받은 사람이 계속 이겼다. 지금은 누구에게나 무작위로 터지고
-  // 운 능력치는 좋은 쪽이 나올 확률만 올린다.
+  // 구슬마다 하나씩 배정되고 일정 간격으로 자동 발동한다.
+  // 승률을 재서 서로 비슷하게 맞춰뒀다. 한쪽이 세면 스킬 뽑기가 곧 승부가 된다.
 
-  var GOOD = [
+  var SKILLS = [
     { name: "가속", emoji: "🚀", run: function (m) { m.vy += 340; } },
     {
       name: "미끄럼", emoji: "🧊",
@@ -192,29 +168,14 @@
         ahead.sort(function (a, b) { return b.y - a.y; });
         ahead.slice(0, 2).forEach(function (o) { o.vy *= 0.06; o.vx *= 0.2; });
       }
-    }
-  ];
-
-  var BAD = [
-    { name: "헛디딤", emoji: "😵", run: function (m) { m.vy *= 0.15; m.vx *= 0.3; } },
-    {
-      name: "역풍", emoji: "🌪️",
-      run: function (m) { m.vy -= 300; m.vx += (Math.random() * 2 - 1) * 260; }
     },
-    {
-      name: "진흙", emoji: "🟤",
-      run: function (m) { m.gravityScale = 0.55; m.effectUntil = m.t + 2.2; }
-    }
-  ];
-
-  var NEUTRAL = [
     {
       name: "자리바꿈", emoji: "✨",
       run: function (m, all) {
         // 좌표를 밀어내는 방식은 계속 한쪽으로 샜다. 위로 뛸수록 벽에 막혀 불발되고
         // 아래로는 거의 안 막혀서 실패가 곧 이득이 됐다. 자리를 맞바꾸면 구조적으로 대칭이다.
         var others = all.filter(function (o) {
-          return o !== m && !o.done && !o.clones.length && !isRigged(o);
+          return o !== m && !o.done && !o.clones.length;
         });
         if (!others.length) return;
         var o = others[Math.floor(Math.random() * others.length)];
@@ -224,22 +185,18 @@
         m.progressY = Math.min(m.progressY, m.y);
         o.progressY = Math.min(o.progressY, o.y);
       }
+    },
+    {
+      name: "막판스퍼트", emoji: "🔥",
+      run: function (m) {
+        if (m.y > COURSE_H * 0.62) m.vy += 700;
+      }
     }
   ];
 
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-  function isRigged(m) { return !!(rig && m.name === rig.name); }
 
-  function rollEvent(m) {
-    if (isRigged(m)) {
-      // 자리바꿈은 조작을 통째로 뒤집을 수 있어 대상에게는 돌리지 않는다.
-      return Math.random() < (rig.mode === "lose" ? 0.06 : 0.94) ? pick(GOOD) : pick(BAD);
-    }
-    if (Math.random() < 0.18) return pick(NEUTRAL);
-    var good = 0.34 + m.stats.luck * 0.05;   // 운 2 → 44%, 운 8 → 74%
-    return Math.random() < good ? pick(GOOD) : pick(BAD);
-  }
 
   // ── 상태 ──────────────────────────────────────────────────
 
@@ -252,11 +209,6 @@
   var racing = false;
   var toasts = [];
   var winRule = "last";   // 커피 내기는 보통 꼴찌가 산다
-
-  // 방장 조작. 판을 시작하기 전에 방장만 몰래 정해두는 값이다.
-  // 순간이동처럼 티 나는 방식은 쓰지 않는다. 돌발 상황 확률을 기울이고,
-  // 원하는 자리에서 벗어난 만큼만 서서히 끌거나 밀어서 자연스러워 보이게 한다.
-  var rig = null;   // { name, mode: "lose" | "win" }
 
   var elSetup = document.getElementById("rb-setup");
   var elStage = document.getElementById("rb-stage");
@@ -271,7 +223,7 @@
   var elStake = document.getElementById("rb-stake");
   var elVerdict = document.getElementById("rb-verdict");
 
-  var entries = [];   // [{ name, stats }]
+  var entries = [];   // [{ name, skill }]
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
@@ -283,7 +235,7 @@
     var v = (raw || "").trim();
     if (!v) return false;
     if (entries.length >= MAX_MARBLES) return false;
-    entries.push({ name: v, stats: rollStats() });
+    entries.push({ name: v, skill: pick(SKILLS) });
     buildMarbles();
     return true;
   }
@@ -293,8 +245,9 @@
     buildMarbles();
   }
 
-  function rerollStats() {
-    entries.forEach(function (e) { e.stats = rollStats(); });
+  // 스킬은 굴릴 때마다 다시 뽑는다. 사람에게 고정되면 뽑기로 쓸 수 없다.
+  function rerollSkills() {
+    entries.forEach(function (e) { e.skill = pick(SKILLS); });
   }
 
   function buildMarbles() {
@@ -310,13 +263,10 @@
     marbles = names.map(function (name, i) {
       var hue = Math.round((360 / Math.max(names.length, 1)) * i);
       var slot = slots[i];
-      var st = entries[i].stats;
       return {
         name: name,
         color: "hsl(" + hue + " 70% 55%)",
-        stats: st,
-        mass: 1 + (st.power - 5) * 0.14,
-        morale: 50, moraleTimer: 0.4, lastRank: null,
+        skill: entries[i].skill,
         x: 40 + (slot % 6) * 60 + (Math.random() * 10 - 5),
         y: 40 + Math.floor(slot / 6) * 34,
         vx: 0, vy: 0,
@@ -338,28 +288,20 @@
     }
   }
 
-  function statBars(st) {
-    return STATS.map(function (s) {
-      var v = st[s.key];
-      return '<span class="stat"><em>' + s.name + '</em>' +
-        '<i><u style="width:' + (v / STAT_MAX * 100) + '%"></u></i>' +
-        '<b>' + v + '</b></span>';
-    }).join("");
-  }
-
   function renderRoster() {
     elRoster.innerHTML = marbles.map(function (m, i) {
       return '<li><div class="rtop">' +
         '<span class="dot" style="background:' + m.color + '"></span>' +
         '<span class="rname">' + escapeHtml(m.name) + "</span>" +
+        '<span class="rab">?</span>' +
         '<button type="button" class="rdel" data-i="' + i + '" aria-label="삭제">×</button>' +
-        "</div><div class=\"stats\">" + statBars(m.stats) + "</div></li>";
+        "</div></li>";
     }).join("");
     if (elEmpty) elEmpty.hidden = entries.length > 0;
     if (elStart) {
       elStart.disabled = entries.length < 2;
       elStart.textContent = entries.length < 2
-        ? "두 명 이상 필요해요"
+        ? "2명 이상 필요해요"
         : "굴리기 (" + entries.length + "명)";
     }
   }
@@ -388,19 +330,16 @@
     if (dist >= R * 2 || dist === 0) return;
     var nx = dx / dist, ny = dy / dist;
 
-    // 무게가 무거운 쪽이 덜 밀린다. 무게 능력치가 여기서 드러난다.
-    var ma = a.mass, mb = b.mass;
-    var total = ma + mb;
-    var overlap = R * 2 - dist;
-    a.x -= nx * overlap * (mb / total); a.y -= ny * overlap * (mb / total);
-    b.x += nx * overlap * (ma / total); b.y += ny * overlap * (ma / total);
+    var overlap = (R * 2 - dist) / 2;
+    a.x -= nx * overlap; a.y -= ny * overlap;
+    b.x += nx * overlap; b.y += ny * overlap;
 
     var rvx = b.vx - a.vx, rvy = b.vy - a.vy;
     var vn = rvx * nx + rvy * ny;
     if (vn > 0) return;
-    var imp = -(1 + 0.35) * vn / (1 / ma + 1 / mb);
-    a.vx -= (imp / ma) * nx; a.vy -= (imp / ma) * ny;
-    b.vx += (imp / mb) * nx; b.vy += (imp / mb) * ny;
+    var imp = -(1 + 0.35) * vn / 2;
+    a.vx -= imp * nx; a.vy -= imp * ny;
+    b.vx += imp * nx; b.vy += imp * ny;
   }
 
   function countAhead(m) {
@@ -423,45 +362,14 @@
         m.gravityScale = 1; m.noBounce = false; m.effectUntil = 0;
       }
 
-      // 컨디션: 순위를 올리면 오르고 밀리면 떨어진다. 근성 능력치가 진폭을 정한다.
-      // 선두가 계속 오르기만 하면 눈덩이가 되므로 등수 변화량으로만 움직이고 50으로 회귀한다.
-      m.moraleTimer -= dt;
-      if (m.moraleTimer <= 0) {
-        m.moraleTimer = 0.4;
-        var rank = countAhead(m);
-        if (m.lastRank !== null) {
-          m.morale += (m.lastRank - rank) * (5 + m.stats.spirit * 1.5);
-        }
-        m.lastRank = rank;
-        m.morale += (50 - m.morale) * 0.05;
-        if (m.morale < 0) m.morale = 0;
-        if (m.morale > 100) m.morale = 100;
-      }
-
       m.cooldown -= dt;
       if (m.cooldown <= 0) {
-        var ev = rollEvent(m);
-        ev.run(m, marbles);
+        m.skill.run(m, marbles);
         m.cooldown = 4 + Math.random() * 3.5;
-        toasts.push({ x: m.x, y: m.y, text: ev.emoji + " " + m.name, life: 1.1 });
+        toasts.push({ x: m.x, y: m.y, text: m.skill.emoji + " " + m.name, life: 1.1 });
       }
 
-      // 방장 조작: 원하는 자리에서 벗어난 정도에 비례해 끌거나 민다.
-      // 한 번에 크게 손대면 눈에 보이므로 매 순간 조금씩만 건드린다.
-      if (isRigged(m)) {
-        var behind = 0, ahead = 0;
-        for (var q = 0; q < marbles.length; q += 1) {
-          var o = marbles[q];
-          if (o === m) continue;
-          if (o.done || o.y > m.y) ahead += 1; else behind += 1;
-        }
-        if (rig.mode === "lose" && behind > 0) m.vy -= 300 * behind * dt;
-        if (rig.mode === "win" && ahead > 0) m.vy += 300 * ahead * dt;
-      }
-
-      var speedMul = 0.92 + m.stats.speed * 0.02;      // 속도 2 → 0.96, 8 → 1.08
-      var moraleMul = 0.88 + (m.morale / 100) * 0.24;  // 컨디션 0 → 0.88, 100 → 1.12
-      m.vy += GRAVITY * m.gravityScale * speedMul * moraleMul * dt;
+      m.vy += GRAVITY * m.gravityScale * dt;
       m.x += m.vx * dt;
       m.y += m.vy * dt;
 
@@ -625,18 +533,11 @@
       ctx.fillStyle = m.color;
       ctx.beginPath(); ctx.arc(m.x, m.y, R, 0, 7); ctx.fill();
 
-      // 컨디션 링. 오르면 강조색, 떨어지면 흐린 테두리가 돈다.
-      if (m.morale > 62 || m.morale < 38) {
-        ctx.strokeStyle = m.morale > 62 ? accent : line;
-        ctx.lineWidth = 2.5;
-        ctx.beginPath(); ctx.arc(m.x, m.y, R + 4, 0, 7); ctx.stroke();
-      }
-
       if (camScale > 0.55) {
         ctx.fillStyle = ink;
         ctx.font = "600 " + (11 / camScale).toFixed(1) + "px -apple-system, sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText(m.name, m.x, m.y - R - 6 / camScale);
+        ctx.fillText(m.skill.emoji + " " + m.name, m.x, m.y - R - 6 / camScale);
       }
     });
 
@@ -663,7 +564,7 @@
       return '<li class="live-item' + on + '" data-name="' + escapeHtml(m.name) + '">' +
         '<span class="dot" style="background:' + m.color + '"></span>' +
         "<b>" + (i + 1) + "</b> " + escapeHtml(m.name) +
-        '<span class="mor"><u style="width:' + m.morale.toFixed(0) + '%"></u></span></li>';
+        '<span class="lab">' + m.skill.emoji + "</span></li>";
     }).join("");
   }
 
@@ -694,7 +595,7 @@
   function startRace() {
     if (entries.length < 2) return;
     buildCourse();
-    rerollStats();   // 능력치는 판마다 새로 굴린다. 사람에게 붙어 있으면 뽑기가 안 된다.
+    rerollSkills();
     buildMarbles();
     finished = [];
     toasts = [];
@@ -705,6 +606,9 @@
     elSetup.hidden = true;
     elStage.hidden = false;
     elResult.hidden = true;
+    // 숨김이 풀린 뒤라야 실제 크기를 잴 수 있다.
+    fit();
+    canvas.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   function winner() {
@@ -802,40 +706,51 @@
     });
   });
 
-  var elStatHelp = document.getElementById("rb-stat-help");
-  if (elStatHelp) {
-    elStatHelp.innerHTML = STATS.map(function (s) {
-      return "<li><b>" + s.name + "</b> " + s.desc + "</li>";
+  var elSkillHelp = document.getElementById("rb-skill-help");
+  if (elSkillHelp) {
+    elSkillHelp.innerHTML = SKILLS.map(function (s) {
+      return "<li><b>" + s.emoji + " " + s.name + "</b></li>";
     }).join("") +
-      "<li><b>컨디션</b> 경주 중 실시간으로 오르내립니다. 순위를 올리면 오르고 밀리면 처져요. " +
-      "컨디션이 높을수록 빨라집니다.</li>" +
-      "<li>능력치 총합은 모두 20으로 같고 판마다 다시 굴립니다. 반복해서 돌리면 누구나 공평해요.</li>";
+      "<li>스킬은 굴릴 때마다 다시 뽑고, 경주가 시작되면 공개됩니다.</li>";
   }
 
+  // 판을 420x700 고정으로 그리면 폰에서 세로가 화면을 넘어가 아래가 잘린다.
+  // 물리와 코스 길이는 그대로 두고, 카메라가 보여주는 세로 구간만 실제 박스 비율에 맞춘다.
+  // 구슬이 찌그러지지 않으면서 판 전체가 한 화면에 들어온다.
   function fit() {
     var ratio = window.devicePixelRatio || 1;
-    canvas.width = W * ratio;
-    canvas.height = VIEW_H * ratio;
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    var box = canvas.getBoundingClientRect();
+    var cssW = box.width || W;
+    var cssH = box.height || VIEW_H;
+    VIEW_H = Math.max(360, Math.round(W * (cssH / cssW)));
+    canvas.width = Math.round(cssW * ratio);
+    canvas.height = Math.round(cssH * ratio);
+    var scale = (cssW / W) * ratio;
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
   }
+
+  var fitTimer = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(fitTimer);
+    fitTimer = setTimeout(fit, 150);
+  });
 
   // 테스트용 노출. 코스가 새는지, 완주가 되는지, 편향이 없는지 node로 확인한다.
   window.__rollboard = {
-    setRig: function (r) { rig = r; },
     startHeadless: function (names) {
       entries = [];
       names.forEach(addName);
-      buildCourse(); rerollStats(); buildMarbles(); finished = []; racing = true;
+      buildCourse(); rerollSkills(); buildMarbles(); finished = []; racing = true;
     },
     step: step,
     state: function () {
       return {
         finished: finished.map(function (m) {
-          return { name: m.name, stats: m.stats, morale: Math.round(m.morale) };
+          return { name: m.name, skill: m.skill.name };
         }),
         pending: marbles.filter(function (m) { return !m.done; })
           .map(function (m) {
-            return { name: m.name, x: Math.round(m.x), y: Math.round(m.y), morale: Math.round(m.morale) };
+            return { name: m.name, x: Math.round(m.x), y: Math.round(m.y) };
           })
       };
     },

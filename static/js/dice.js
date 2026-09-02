@@ -188,8 +188,8 @@
   function play() {
     buildDie($("die1"));
     buildDie($("die2"));
-    $("who").innerHTML = "&nbsp;";
-    $("note").innerHTML = "&nbsp;";
+    $("who").textContent = "";
+    $("note").textContent = "";
     var upto = {};
     result.players.forEach(function (p) { upto[p.name] = 0; });
     renderTable(upto);

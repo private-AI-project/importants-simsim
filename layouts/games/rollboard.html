@@ -4,7 +4,7 @@
     <h1>{{ .Title }}</h1>
 
     <section id="rb-setup">
-        <p class="lead">이름을 넣으면 구슬이 하나씩 늘어납니다. 능력치를 보고 누구에게 걸지 정하세요.</p>
+        <p class="lead">이름을 넣으면 구슬이 하나씩 늘어납니다. 구슬마다 스킬이 하나씩 붙어요.</p>
 
         <label class="field">
             <span>무엇을 걸까요 <em>(선택)</em></span>
@@ -27,17 +27,18 @@
 
         <div class="roster-head">
             <span>출전 구슬</span>
-            <span class="hidden-note">능력치는 굴릴 때마다 새로 정해집니다</span>
+            <span class="hidden-note">스킬은 경주에서 공개됩니다</span>
         </div>
         <ul class="roster" id="rb-roster"></ul>
         <p class="roster-empty" id="rb-empty">아직 아무도 없습니다. 최대 12명까지 넣을 수 있어요.</p>
 
-        <button class="btn primary" id="rb-start" disabled>두 명 이상 필요해요</button>
+        <button class="btn primary" id="rb-start" disabled>2명 이상 필요해요</button>
 
         <details class="ab-help">
-            <summary>능력치와 사기가 뭔가요</summary>
-            <ul id="rb-stat-help"></ul>
+            <summary>어떤 스킬이 있나요</summary>
+            <ul id="rb-skill-help"></ul>
         </details>
+
     </section>
 
     <section id="rb-stage" hidden>
@@ -51,7 +52,7 @@
             <canvas id="board" width="420" height="700" aria-label="굴림판 경주"></canvas>
             <ol class="live" id="rb-live"></ol>
         </div>
-        <p class="hint">순위표에서 이름을 누르면 그 구슬을 따라갑니다. 막대는 사기입니다.</p>
+        <p class="hint">순위표에서 이름을 누르면 그 구슬을 따라갑니다.</p>
 
         <div class="result-panel" id="rb-result" hidden>
             <p class="verdict" id="rb-verdict"></p>

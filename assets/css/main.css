@@ -224,8 +224,11 @@ p { margin: 0 0 14px; }
 .ab-help b { color: var(--ink); }
 
 .race-wrap { display: flex; gap: 12px; align-items: flex-start; justify-content: center; }
-#marble {
-    display: block; width: 100%; max-width: 420px; height: auto;
+#board {
+    display: block; width: 100%; max-width: 420px;
+    /* height:auto 로 두면 캔버스 속성 비율(420x700)을 그대로 써서 폰에서 세로가 넘친다.
+       높이를 직접 잡으면 박스가 상대적으로 넓어지고, JS 가 그만큼 보여줄 구간을 줄인다. */
+    height: min(68vh, 700px);
     background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
 }
 .live {
@@ -237,7 +240,19 @@ p { margin: 0 0 14px; }
     border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden;
 }
 .live b { color: var(--accent); }
-@media (max-width: 640px) { .live { display: none; } }
+@media (max-width: 640px) {
+    .race-wrap { display: block; }
+    .live {
+        width: auto; max-height: none; margin-top: 10px;
+        display: flex; flex-wrap: wrap; gap: 4px;
+    }
+    .live li {
+        flex: 0 0 auto; border-bottom: none; padding: 4px 8px;
+        background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+        font-size: 12px;
+    }
+    .live .lab { margin-left: 2px; }
+}
 
 .result-panel { margin-top: 22px; text-align: left; }
 .result-panel .go-label { text-align: center; }
@@ -373,3 +388,28 @@ p { margin: 0 0 14px; }
 }
 .die .f i { width: 9px; height: 9px; border-radius: 50%; background: var(--ink);
     align-self: center; justify-self: center; }
+
+/* 모바일 넘침 방지.
+   flex 항목은 min-width 기본값이 auto라 캔버스의 원래 폭(420px) 아래로 안 줄어든다.
+   그래서 좁은 화면에서 게임판이 화면 밖으로 나갔다. */
+#board { min-width: 0; max-width: 100%; }
+
+/* 사다리와 돌림판은 판 전체가 한 화면에 들어와야 한다.
+   굴림판처럼 보여줄 구간을 줄일 수 없으니 통째로 축소한다. */
+#ld-canvas, #rl-canvas {
+    min-width: 0; max-width: 100%; max-height: 72vh;
+    width: auto; margin-left: auto; margin-right: auto;
+}
+.race-wrap { max-width: 100%; }
+.game, .game > section { max-width: 100%; overflow-x: hidden; }
+
+@media (max-width: 640px) {
+    .race-wrap { display: block; }
+    .wrap { padding-left: 14px; padding-right: 14px; }
+    .cam-bar { flex-wrap: wrap; }
+    .cam-btn { padding: 7px 11px; font-size: 12px; }
+    .rule-bar .cam-btn { flex: 1; }
+    .add-row { gap: 6px; }
+    .pname { width: 60px; font-size: 13px; }
+    .result-actions .btn { flex: 1; min-width: 0; }
+}

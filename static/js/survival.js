@@ -255,7 +255,7 @@
     if (elEmpty) elEmpty.hidden = entries.length > 0;
     elStart.disabled = entries.length < 2;
     elStart.textContent = entries.length < 2
-      ? "두 명 이상 필요해요"
+      ? "2명 이상 필요해요"
       : "시작 (" + entries.length + "명)";
 
     if (elRigSel) {
