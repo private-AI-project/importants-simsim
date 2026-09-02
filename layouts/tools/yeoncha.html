@@ -1,0 +1,138 @@
+{{ define "main" }}
+{{/* 공휴일은 data/holidays/*.json 을 빌드 시점에 심는다. 브라우저에서 API를 부르면
+     인증키가 노출되고, 연 1회만 바뀌는 값이다. 연도 추가는 파일만 놓으면 된다. */}}
+{{- $byYear := dict -}}
+{{- range $year, $file := hugo.Data.holidays -}}
+  {{- $byYear = merge $byYear (dict $year $file.holidays) -}}
+{{- end -}}
+<script type="application/json" id="yc-data">{{ $byYear | jsonify | safeJS }}</script>
+
+<article class="game yeoncha" id="yc-app">
+    <p class="quiz-cat">{{ .Params.category }}</p>
+    <h1>{{ .Title }}</h1>
+
+    <nav class="yc-nav" id="yc-nav">
+        <button type="button" data-screen="home" class="on">계산</button>
+        <button type="button" data-screen="year">연도 전체</button>
+        <button type="button" data-screen="about">안내</button>
+    </nav>
+
+    <section class="yc-screen" id="yc-home">
+        <div class="yc-cols">
+            <div class="yc-left">
+                <div class="yc-years" id="yc-years"></div>
+
+                <section class="yc-card">
+                    <div class="yc-leave-head">
+                        <span>내 연차</span>
+                        <span class="yc-leave-num"><b id="yc-leave-val">15</b>일</span>
+                    </div>
+                    <input type="range" id="yc-leave" min="0" max="25" step="1" value="15"
+                           aria-label="연차 일수">
+                    <div class="yc-scale"><span>0</span><span>15 (법정 기본)</span><span>25</span></div>
+                    <div class="yc-seg" id="yc-mode">
+                        <button type="button" data-mode="long" class="on">긴 연휴 우선</button>
+                        <button type="button" data-mode="freq">자주 쉬기</button>
+                    </div>
+                </section>
+
+                <section class="yc-card yc-empty" id="yc-untouched">
+                    <p class="yc-empty-title">내 연차 개수를 정하면<br>가장 길게 쉬는 조합을 계산합니다</p>
+                    <p class="yc-empty-sub">위 슬라이더를 움직이거나, 기본값으로 시작하세요</p>
+                    <button type="button" class="btn primary" id="yc-start">연차 15일로 계산하기</button>
+                </section>
+
+                <section class="yc-card yc-result" id="yc-result" hidden>
+                    <div>
+                        <p class="yc-result-lead">연차 <b id="yc-r-leave">15</b>일 중
+                            <b id="yc-r-used">0</b>일을 붙여 쓰면</p>
+                        <p class="yc-result-big">총 <strong id="yc-r-total">0</strong>일을 쉽니다</p>
+                        <p class="yc-result-note">3일 이상 이어 쉬는 날의 합계 ·
+                            연차 없이 <span id="yc-r-base">0</span>일</p>
+                    </div>
+                    <ul class="yc-recs" id="yc-recs"></ul>
+                    <p class="yc-remain">추천에 쓴 연차 <b id="yc-r-used2">0</b>일 ·
+                        남은 연차 <b id="yc-r-remain">0</b>일</p>
+                    <div class="yc-share">
+                        <button type="button" class="btn primary" id="yc-share-sq">이미지 저장 (정방형)</button>
+                        <button type="button" class="btn ghost" id="yc-share-story">스토리용 (세로)</button>
+                    </div>
+                </section>
+            </div>
+
+            <div class="yc-right">
+                <h2 class="yc-sub" id="yc-cards-title">2027년 연휴</h2>
+                <div id="yc-cards"></div>
+
+                <section class="yc-card yc-travel">
+                    <h3 class="yc-sub">연휴 길이별 여행 거리</h3>
+                    <ul class="yc-travel-list">
+                        <li><span class="yc-days">9일</span><span>유럽, 미주 장거리</span></li>
+                        <li><span class="yc-days">5일</span><span>동남아, 일본 지방 도시</span></li>
+                        <li><span class="yc-days">3일</span><span>국내, 일본 근거리</span></li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </section>
+
+    <section class="yc-screen" id="yc-detail" hidden>
+        <button type="button" class="yc-back" id="yc-back">← 계산으로</button>
+        <div class="yc-detail-head">
+            <h2 id="yc-d-name"></h2>
+            <span class="yc-d-len" id="yc-d-len"></span>
+        </div>
+        <p class="yc-d-span" id="yc-d-span"></p>
+
+        <section class="yc-card">
+            <h3 class="yc-cal-month" id="yc-d-month"></h3>
+            <div class="yc-cal-dow"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+            <div class="yc-cal" id="yc-d-cal"></div>
+        </section>
+
+        <section class="yc-card">
+            <h3 class="yc-sub">연차를 붙이는 선택지</h3>
+            <ul class="yc-opts" id="yc-d-opts"></ul>
+        </section>
+    </section>
+
+    <section class="yc-screen" id="yc-year" hidden>
+        <div class="yc-year-head">
+            <h2 class="yc-sub" id="yc-year-title">2027년 전체</h2>
+            <div class="yc-legend">
+                <span><i class="sw-hol"></i>공휴일</span>
+                <span><i class="sw-wk"></i>주말</span>
+                <span><i class="sw-lv"></i>연차 (추천)</span>
+            </div>
+        </div>
+        <section class="yc-card" id="yc-year-grid"></section>
+
+        <section class="yc-card">
+            <h3 class="yc-sub">연차 쓸 날</h3>
+            <div class="yc-ydays" id="yc-year-days"></div>
+        </section>
+
+        <p class="yc-result-note" id="yc-year-note"></p>
+    </section>
+
+    <section class="yc-screen yc-about" id="yc-about" hidden>
+        <h2 class="yc-sub">안내</h2>
+        <section class="yc-card">
+            <h3>데이터 출처</h3>
+            <p>공휴일은 한국천문연구원 특일 정보(공공데이터포털) 값을 씁니다. 대체공휴일도 API 값을 그대로 반영하며 직접 계산하지 않습니다.</p>
+        </section>
+        <section class="yc-card">
+            <h3>계산 방식</h3>
+            <p>주말과 공휴일 사이의 평일에 연차를 놓아 이어 쉬는 기간을 만듭니다. "긴 연휴 우선"은 가장 긴 연속 휴일을, "자주 쉬기"는 연차 1일당 효율을 앞세웁니다. 총 쉬는 날은 3일 이상 이어지는 기간의 합계입니다.</p>
+        </section>
+        <section class="yc-card">
+            <h3>주의</h3>
+            <p>계산 결과는 참고용입니다. 회사의 휴일·휴가 규정에 따라 실제와 다를 수 있습니다. 근로자의날은 관공서 공휴일이 아니라 회사에 따라 쉬지 않을 수 있습니다.</p>
+        </section>
+    </section>
+
+    {{ with .Content }}<div class="game-desc">{{ . }}</div>{{ end }}
+</article>
+
+<script src="{{ "js/yeoncha.js" | relURL }}" defer></script>
+{{ end }}
