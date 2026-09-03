@@ -599,6 +599,10 @@ p { margin: 0 0 14px; }
     .dp-result.in .result-actions { animation: none; }
     .dp-result.in::before { display: none; }
 }
+.dp-result .share { margin: 20px 0 0; padding-top: 16px; border-top: 1px solid var(--line); }
+.dp-result .share-label { margin-bottom: 8px; }
+.share-note { margin: 9px 0 0; font-size: 11.5px; color: var(--muted); }
+
 .dp-rejected {
     margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line);
     font-size: 12px; line-height: 1.6; color: var(--muted);

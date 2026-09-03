@@ -82,8 +82,20 @@
         <p class="dp-picked" id="dp-picked"></p>
         <p class="dp-picked-note" id="dp-picked-note"></p>
         <p class="dp-weather" id="dp-weather-line" hidden></p>
+        {{/* 공유는 quizzes 와 같은 3종 패턴이다. navigator.share 를 쓰니
+             카카오 SDK 키가 필요 없고, 모바일 공유 시트에 카카오톡이 뜬다.
+             문구와 주소는 date-pick.js 가 뽑을 때마다 갱신한다. */}}
+        <div class="share" data-share-text="모임 날짜를 뽑았습니다">
+            <span class="share-label">단톡방에 보내기</span>
+            <div class="share-btns">
+                <button class="share-btn kakao" type="button" data-share="native">카카오톡·메시지</button>
+                <button class="share-btn link" type="button" data-share="copy">링크 복사</button>
+            </div>
+            <p class="share-note">링크를 열면 고른 날짜와 결과가 그대로 보입니다</p>
+        </div>
+
         <div class="result-actions">
-            <button class="btn ghost small" id="dp-copy">결과 복사</button>
+            <button class="btn ghost small" id="dp-copy">날짜만 복사</button>
             <button class="btn ghost small" id="dp-reject">이 날은 안 돼요</button>
             <button class="btn ghost small" id="dp-edit">날짜 고치기</button>
             <button class="btn primary" id="dp-again">다시 뽑기</button>
@@ -94,5 +106,6 @@
     {{ with .Content }}<div class="game-desc">{{ . }}</div>{{ end }}
 </article>
 
+<script src="{{ "js/share.js" | relURL }}" defer></script>
 <script src="{{ "js/date-pick.js" | relURL }}" defer></script>
 {{ end }}
