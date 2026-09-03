@@ -711,3 +711,11 @@ p { margin: 0 0 14px; }
     .yc-tier-cost b, .yc-tier-len { font-size: 22px; }
     .yc-cities { gap: 6px; }
 }
+
+/* 도시 칸: 사진은 항공권, 아래 작은 링크는 현지 투어 */
+.yc-city-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.yc-city-tour {
+    font-size: 11px; color: var(--muted); text-align: center;
+    text-decoration: none; padding: 2px 0;
+}
+.yc-city-tour:hover { color: var(--accent); text-decoration: underline; }
