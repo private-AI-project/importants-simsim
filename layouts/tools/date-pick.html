@@ -1,0 +1,98 @@
+{{ define "main" }}
+{{/* 공휴일은 연차 계산기와 같은 data/holidays/*.json 을 빌드 시점에 심는다.
+     브라우저에서 API 를 부르면 인증키가 노출되고, 연 1회만 바뀌는 값이다. */}}
+{{- $byYear := dict -}}
+{{- range $year, $file := hugo.Data.holidays -}}
+  {{- $byYear = merge $byYear (dict $year $file.holidays) -}}
+{{- end -}}
+<script type="application/json" id="dp-holidays">{{ $byYear | jsonify | safeJS }}</script>
+{{/* 날씨는 GitHub Actions 가 하루 한 번 받아 data/weather.json 으로 남긴다.
+     브라우저에서 기상청 API 를 직접 부르면 인증키가 노출된다.
+     파일이 없어도 도구는 그대로 돌아가야 하므로 없으면 빈 값을 심는다. */}}
+<script type="application/json" id="dp-weather">
+  {{- with hugo.Data.weather }}{{ . | jsonify | safeJS }}{{ else }}{}{{ end -}}
+</script>
+
+<article class="game date-pick" id="dp-app">
+    <p class="quiz-cat">{{ .Params.category }}</p>
+    <h1>{{ .Title }}</h1>
+
+    <p class="lead">모임 날짜를 투표 대신 뽑습니다. 될 날짜만 골라두면 그중 하루를 뽑아줍니다.</p>
+
+    {{/* 결과가 나오면 이 섹션을 접는다. 뽑고 나서까지 달력이 남아 있으면
+         무엇을 보라는 화면인지 흐려진다. 다시 뽑을 때만 잠깐 펼친다. */}}
+    <section id="dp-setup">
+    <div class="sv-group">
+        <p class="sv-step">언제 사이에서 뽑을까요</p>
+        <div class="dp-range">
+            <input type="date" id="dp-from" aria-label="시작일">
+            <span class="dp-tilde">~</span>
+            <input type="date" id="dp-to" aria-label="종료일">
+        </div>
+        <div class="dp-presets" id="dp-presets">
+            <button type="button" class="cam-btn" data-weeks="2">2주 안</button>
+            <button type="button" class="cam-btn on" data-weeks="4">4주 안</button>
+            <button type="button" class="cam-btn" data-weeks="8">8주 안</button>
+        </div>
+    </div>
+
+    <div class="sv-group">
+        <div class="dp-cal-head">
+            <p class="sv-step">될 날짜를 눌러 고르세요</p>
+            <button type="button" class="yc-clear" id="dp-clear" hidden>지우기</button>
+        </div>
+        <div class="dp-legend">
+            <span><i class="dp-sw-on"></i>고른 날</span>
+            <span><i class="dp-sw-hol"></i>공휴일</span>
+            <span><i class="dp-sw-wx"></i>날씨 예보 있음</span>
+        </div>
+        <p class="dp-span" id="dp-span"></p>
+        <div class="dp-dow-row"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+        <div class="dp-grid" id="dp-months"></div>
+
+        {{/* 빠른 선택은 달력 아래에 둔다. 위에 있으면 무엇이 담기는지 보기 전에
+             누르게 되고, 누른 결과를 보려면 눈이 다시 아래로 내려가야 한다. */}}
+        <div class="dp-presets dp-quick" id="dp-quick">
+            <button type="button" class="cam-btn" data-set="fri-sat">금·토</button>
+            <button type="button" class="cam-btn" data-set="weekend">주말</button>
+            <button type="button" class="cam-btn" data-set="weekday">평일</button>
+            <button type="button" class="cam-btn" data-set="holiday">공휴일</button>
+            <button type="button" class="cam-btn" data-set="all">전부</button>
+        </div>
+    </div>
+
+    <p class="dp-count none" id="dp-count">될 날짜를 하나 이상 고르세요</p>
+    <button class="btn primary" id="dp-pick" disabled>뽑기</button>
+
+    <details class="rig-box">
+        <summary>방장만 보세요 <span class="rig-badge" id="dp-rig-badge" hidden>설정됨</span></summary>
+        <p class="rig-warn">정해두면 결과가 그쪽으로 흘러갑니다. 고른 날짜만 목록에 나옵니다.</p>
+        <div class="rig-row">
+            <select id="dp-rig-target"><option value="">조작 안 함</option></select>
+            <select id="dp-rig-mode">
+                <option value="win">이 날로 나오게</option>
+                <option value="lose">이 날은 빼고</option>
+            </select>
+        </div>
+    </details>
+    </section>
+
+    <div class="dp-result" id="dp-result" hidden>
+        <p class="dp-picked-dow" id="dp-picked-dow"></p>
+        <p class="dp-picked" id="dp-picked"></p>
+        <p class="dp-picked-note" id="dp-picked-note"></p>
+        <p class="dp-weather" id="dp-weather-line" hidden></p>
+        <div class="result-actions">
+            <button class="btn ghost small" id="dp-copy">결과 복사</button>
+            <button class="btn ghost small" id="dp-reject">이 날은 안 돼요</button>
+            <button class="btn ghost small" id="dp-edit">날짜 고치기</button>
+            <button class="btn primary" id="dp-again">다시 뽑기</button>
+        </div>
+        <p class="dp-rejected" id="dp-rejected" hidden></p>
+    </div>
+
+    {{ with .Content }}<div class="game-desc">{{ . }}</div>{{ end }}
+</article>
+
+<script src="{{ "js/date-pick.js" | relURL }}" defer></script>
+{{ end }}
