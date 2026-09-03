@@ -4,45 +4,48 @@
     <h1>{{ .Title }}</h1>
 
     <section id="sv-setup">
-        <p class="lead">능력치를 받고 알아서 싸웁니다. 마지막까지 남은 사람이 1등입니다.</p>
+        <p class="lead">능력치를 받고 알아서 싸웁니다. 먼저 탈락한 사람이 걸리는 게 기본이고, 아래에서 바꿀 수 있습니다.</p>
 
-        <label class="field">
-            <span>무엇을 걸까요 <em>(선택)</em></span>
-            <input type="text" id="sv-stake" placeholder="예) 오늘 커피" maxlength="24" autocomplete="off">
-        </label>
+        <div class="sv-group">
+            <p class="sv-step">누가 하나요<span>최대 12명</span></p>
+            <div class="add-row">
+                <input type="text" id="sv-input" placeholder="이름 입력" maxlength="12"
+                       autocomplete="off" spellcheck="false" aria-label="참가자 이름">
+                <button type="button" class="btn primary small" id="sv-add">추가</button>
+            </div>
 
-        <div class="field">
-            <span>당첨 기준</span>
+            <div class="roster-head" id="sv-roster-head" hidden>
+                <span id="sv-roster-count">참가자</span>
+            </div>
+            <ul class="roster" id="sv-roster"></ul>
+            <p class="roster-empty" id="sv-empty">이름을 넣으면 여기에 쌓입니다.</p>
+        </div>
+
+        <div class="sv-group">
+            <p class="sv-step">누가 걸리나요</p>
             <div class="rule-bar" id="sv-rule">
                 <button type="button" class="cam-btn on" data-rule="last">먼저 탈락한 사람</button>
-                <button type="button" class="cam-btn" data-rule="first">최후 생존자</button>
+                <button type="button" class="cam-btn" data-rule="first">끝까지 살아남은 사람</button>
             </div>
         </div>
 
-        <div class="add-row">
-            <input type="text" id="sv-input" placeholder="이름 입력" maxlength="12"
-                   autocomplete="off" spellcheck="false">
-            <button type="button" class="btn primary small" id="sv-add">추가</button>
-        </div>
-
-        <div class="roster-head">
-            <span>참가자</span>
-            <span class="hidden-note">능력치는 시작할 때마다 새로 정해집니다</span>
-        </div>
-        <ul class="roster" id="sv-roster"></ul>
-        <p class="roster-empty" id="sv-empty">아직 아무도 없습니다. 최대 12명까지 넣을 수 있어요.</p>
-
+        <details class="stake-fold">
+            <summary>무엇을 걸까요</summary>
+            <input type="text" id="sv-stake" class="sv-stake" placeholder="예) 오늘 커피"
+                   maxlength="24" autocomplete="off" aria-label="걸 것">
+        </details>
 
         <button class="btn primary" id="sv-start" disabled>2명 이상 필요해요</button>
 
         <details class="ab-help">
             <summary>능력치가 뭔가요</summary>
+            <p class="ab-note">시작할 때마다 새로 정해집니다. 미리 볼 수는 없습니다.</p>
             <ul id="sv-stat-help"></ul>
         </details>
 
         <details class="rig-box">
-            <summary>설정 <span class="rig-badge" id="sv-rig-badge" hidden>설정됨</span></summary>
-            <p class="rig-warn">여기는 방장만 보세요. 정해두면 결과가 그쪽으로 흘러갑니다.</p>
+            <summary>방장만 보세요 <span class="rig-badge" id="sv-rig-badge" hidden>설정됨</span></summary>
+            <p class="rig-warn">정해두면 결과가 그쪽으로 흘러갑니다.</p>
             <div class="rig-row">
                 <select id="sv-rig-target"><option value="">조작 안 함</option></select>
                 <select id="sv-rig-mode">
