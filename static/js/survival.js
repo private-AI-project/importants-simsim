@@ -198,6 +198,8 @@
   var elInput = document.getElementById("sv-input");
   var elAdd = document.getElementById("sv-add");
   var elEmpty = document.getElementById("sv-empty");
+  var elRosterHead = document.getElementById("sv-roster-head");
+  var elRosterCount = document.getElementById("sv-roster-count");
   var elStart = document.getElementById("sv-start");
   var elRoster = document.getElementById("sv-roster");
   var elField = document.getElementById("sv-field");
@@ -232,27 +234,22 @@
     return "hsl(" + Math.round((360 / Math.max(entries.length, 1)) * i) + " 70% 55%)";
   }
 
-  function statBars(st) {
-    return STATS.map(function (s) {
-      var v = st[s.key];
-      return '<span class="stat"><em>' + s.name + "</em>" +
-        '<i><u style="width:' + (v / STAT_MAX * 100) + '%"></u></i>' +
-        "<b>" + v + "</b></span>";
-    }).join("");
-  }
-
   function render() {
     entries.forEach(function (e, i) { e.color = colorFor(i); });
 
+    // 시작 전에는 능력치를 그리지 않는다. 시작할 때마다 새로 굴리는 값이라
+    // 여기 보여주면 이 수치로 싸우는 줄로 읽힌다.
     elRoster.innerHTML = entries.map(function (e, i) {
       return '<li><div class="rtop">' +
         '<span class="dot" style="background:' + e.color + '"></span>' +
         '<span class="rname">' + escapeHtml(e.name) + "</span>" +
         '<button type="button" class="rdel" data-i="' + i + '" aria-label="삭제">×</button>' +
-        '</div><div class="stats">' + statBars(e.stats) + "</div></li>";
+        "</div></li>";
     }).join("");
 
     if (elEmpty) elEmpty.hidden = entries.length > 0;
+    if (elRosterHead) elRosterHead.hidden = entries.length === 0;
+    if (elRosterCount) elRosterCount.textContent = "참가자 " + entries.length + "명";
     elStart.disabled = entries.length < 2;
     elStart.textContent = entries.length < 2
       ? "2명 이상 필요해요"
@@ -278,22 +275,64 @@
 
   // ── 재생 ──────────────────────────────────────────────────
 
-  function renderField(hpMap, deadSet) {
+  // 줄을 매 틱마다 innerHTML 로 다시 그리면 <u> 가 파괴되고 새로 태어난다.
+  // 새 요소에는 이전 width 가 없어서 CSS 트랜지션이 걸릴 대상이 없고,
+  // 체력바가 부드럽게 줄지 않고 계단처럼 점프한다. 흔들림도 같은 이유로 못 붙는다.
+  // 그래서 목록은 한 번만 만들고 이후에는 속성만 갈아 끼운다.
+  var rows = {};
+
+  function buildField(hpMap, deadSet) {
     elField.innerHTML = entries.map(function (e) {
-      var hp = hpMap[e.name];
-      var dead = deadSet[e.name];
-      return '<li class="pl' + (dead ? " dead" : "") + '">' +
+      return '<li class="pl">' +
         '<span class="dot" style="background:' + e.color + '"></span>' +
         '<span class="pname">' + escapeHtml(e.name) + "</span>" +
-        '<span class="hpbar"><u style="width:' + Math.max(0, hp) + '%"></u></span>' +
-        '<span class="hpnum">' + (dead ? "탈락" : Math.max(0, Math.round(hp))) + "</span></li>";
+        '<span class="hpbar"><u></u></span>' +
+        '<span class="hpnum"></span></li>';
     }).join("");
+
+    // 이름으로 다시 찾지 않고 순서로 잡는다. 이름에 따옴표가 들어가도 안전하다.
+    rows = {};
+    entries.forEach(function (e, i) {
+      var li = elField.children[i];
+      if (li) rows[e.name] = { li: li, bar: li.querySelector("u"), num: li.querySelector(".hpnum") };
+    });
+    renderField(hpMap, deadSet);
+  }
+
+  function renderField(hpMap, deadSet) {
+    entries.forEach(function (e) {
+      var r = rows[e.name];
+      if (!r) return;
+      var hp = Math.max(0, hpMap[e.name]);
+      var dead = !!deadSet[e.name];
+      r.bar.style.width = hp + "%";
+      r.num.textContent = dead ? "탈락" : Math.round(hp);
+      r.li.classList.toggle("dead", dead);
+    });
+  }
+
+  // 애니메이션이 아직 돌고 있는 줄에 클래스를 다시 붙여도 재생되지 않는다.
+  // 떼고 강제로 리플로우를 일으킨 뒤 다시 붙인다.
+  var FX = ["dmg", "dmg-big", "heal", "heal-big"];
+
+  function flash(name, kind, big) {
+    var r = rows[name];
+    if (!r) return;
+    FX.forEach(function (c) { r.li.classList.remove(c); });
+    void r.li.offsetWidth;
+    r.li.classList.add(kind);
+    if (big) r.li.classList.add(kind + "-big");
+    // 클래스를 안 떼면 물든 체력바와 강조된 테두리가 그대로 남는다.
+    r.li.addEventListener("animationend", function off() {
+      FX.forEach(function (c) { r.li.classList.remove(c); });
+      r.li.removeEventListener("animationend", off);
+    });
   }
 
   function play() {
     var hpMap = {}, deadSet = {};
     entries.forEach(function (e) { hpMap[e.name] = HP; });
-    renderField(hpMap, deadSet);
+    buildField(hpMap, deadSet);
     elLog.innerHTML = "";
 
     var i = 0;
@@ -307,9 +346,24 @@
       var ev = result.log[i];
       i += 1;
 
+      var prev = hpMap[ev.name];
+      var hasHp = typeof ev.hp === "number";
+      var tookDamage = hasHp && ev.hp < prev;
+      // 체력이 가득 찬 상태로 보급품을 먹으면 회복량이 0 이라 hp 가 그대로다.
+      // 그래도 로그에는 "보급품이 떨어졌다"가 찍히니 효과는 줘야 앞뒤가 맞는다.
+      var healed = ev.type === "good" || (hasHp && ev.hp > prev);
+      // 체력이 0 에서 오르는 것은 구사일생뿐이다. 보급품·구급상자와 구분해 더 크게 준다.
+      var revived = hasHp && ev.hp > prev && prev === 0;
+
       if (ev.type === "out") deadSet[ev.name] = true;
-      else if (typeof ev.hp === "number") hpMap[ev.name] = ev.hp;
+      else if (hasHp) hpMap[ev.name] = ev.hp;
       renderField(hpMap, deadSet);
+
+      if (tookDamage || ev.type === "out") {
+        flash(ev.name, "dmg", ev.type === "crit" || ev.type === "out");
+      } else if (healed) {
+        flash(ev.name, "heal", revived);
+      }
 
       var li = document.createElement("li");
       li.className = "log-" + ev.type;
@@ -330,10 +384,10 @@
   function finish() {
     var w = target();
     var stake = (elStake && elStake.value.trim()) || "";
-    var label = winRule === "last" ? "가장 먼저 탈락" : "최후 생존";
+    var why = winRule === "last" ? "가장 먼저 탈락했습니다" : "끝까지 살아남았습니다";
     if (elVerdict && w) {
-      elVerdict.innerHTML = (stake ? escapeHtml(stake) + " → " : "") +
-        "<strong>" + escapeHtml(w.name) + "</strong> " + label;
+      elVerdict.innerHTML = "<strong>" + escapeHtml(w.name) + "</strong> 님이 " + why +
+        (stake ? '<span class="verdict-stake">' + escapeHtml(stake) + "</span>" : "");
     }
     elRank.innerHTML = result.ranking.map(function (p, i) {
       var medal = ["🥇", "🥈", "🥉"][i] || (i + 1) + "위";
@@ -409,7 +463,7 @@
     var hpMap = {}, deadSet = {};
     entries.forEach(function (e) { hpMap[e.name] = 0; deadSet[e.name] = true; });
     if (result && result.ranking[0]) { deadSet[result.ranking[0].name] = false; hpMap[result.ranking[0].name] = 30; }
-    renderField(hpMap, deadSet);
+    buildField(hpMap, deadSet);
     finish();
   });
   document.getElementById("sv-copy").addEventListener("click", function (e) {

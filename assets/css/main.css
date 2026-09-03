@@ -182,14 +182,16 @@ p { margin: 0 0 14px; }
 
 /* Marble roulette */
 
+/* 게임마다 입력칸 id 가 달라서(dc- ld- rb- rl- sv-) id 로 잡으면 하나도 안 걸린다.
+   .add-row 안의 입력칸을 통째로 잡는다. */
 .add-row { display: flex; gap: 8px; }
-#mb-input {
+.add-row input[type="text"] {
     flex: 1; min-width: 0; padding: 13px 16px; font-family: inherit; font-size: 16px;
     color: var(--ink); background: var(--card);
     border: 1px solid var(--line); border-radius: 12px;
 }
-#mb-input:focus { outline: none; border-color: var(--accent); }
-#mb-add { flex: none; border-radius: 12px; }
+.add-row input[type="text"]:focus { outline: none; border-color: var(--accent); }
+.add-row .btn { flex: none; border-radius: 12px; }
 
 .roster-empty { color: var(--muted); font-size: 14px; padding: 14px 2px; margin: 0; }
 .rdel {
@@ -199,10 +201,12 @@ p { margin: 0 0 14px; }
 }
 .rdel:hover { color: var(--ink); background: var(--line); }
 
-#mb-start:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+/* 그룹 제목(.sv-step)과 급이 겹치지 않게 한 단 낮춘다.
+   위 간격도 좁혀서 앞의 입력칸과 한 덩이로 읽히게 한다. */
 .roster-head {
     display: flex; align-items: center; justify-content: space-between;
-    margin: 20px 0 10px; font-size: 13px; font-weight: 700; color: var(--muted);
+    margin: 12px 0 8px; font-size: 12px; font-weight: 600; color: var(--muted);
 }
 .roster, .rank, .live { list-style: none; padding: 0; margin: 0; }
 .roster li, .rank li {
@@ -217,7 +221,7 @@ p { margin: 0 0 14px; }
 
 
 
-.ab-help { margin-top: 22px; font-size: 14px; }
+.ab-help { margin-top: 40px; font-size: 14px; }
 .ab-help summary { cursor: pointer; color: var(--accent); font-weight: 700; }
 .ab-help ul { padding-left: 18px; margin-top: 10px; color: var(--muted); }
 .ab-help li { margin-bottom: 6px; }
@@ -284,6 +288,37 @@ p { margin: 0 0 14px; }
 }
 .rule-bar { display: flex; gap: 6px; flex-wrap: wrap; }
 
+/* 서바이벌 설정 화면: 한 덩이에 한 가지만 묻는다.
+   앞에는 해야 하는 일, 뒤에는 안 채워도 되는 것을 둔다.
+
+   여백 비율이 경계를 만든다. 그룹 안은 8~12px, 그룹 사이는 40px 으로
+   3배 이상 벌려야 눈이 덩이를 읽는다. 26px 이었을 때는 그룹 안 20px 과
+   차이가 1.3배뿐이라 경계가 안 보였다. */
+.sv-group { margin-bottom: 40px; }
+.sv-step {
+    margin: 0 0 10px; font-size: 14px; font-weight: 800; color: var(--ink);
+}
+.sv-step span { margin-left: 7px; font-size: 12px; font-weight: 500; color: var(--muted); }
+/* 걸 것은 비워도 게임이 돌아간다. 접어두면 화면에서 입력칸 하나가 사라진다. */
+.stake-fold { margin-bottom: 40px; font-size: 13px; }
+.stake-fold summary {
+    cursor: pointer; color: var(--muted); font-weight: 600; list-style: none;
+}
+.stake-fold summary::-webkit-details-marker { display: none; }
+.stake-fold summary::before { content: "+ "; }
+.stake-fold[open] summary { color: var(--ink); }
+.stake-fold[open] summary::before { content: "− "; }
+.sv-stake {
+    width: 100%; margin-top: 10px; padding: 12px 14px; font-family: inherit; font-size: 15px;
+    color: var(--ink); background: var(--card);
+    border: 1px solid var(--line); border-radius: 12px;
+}
+.sv-stake:focus { outline: none; border-color: var(--accent); }
+.ab-note { margin: 10px 0 0; color: var(--muted); }
+.verdict-stake {
+    display: block; margin-top: 6px; font-size: 14px; color: var(--muted);
+}
+
 .roster li { display: block; }
 .rtop { display: flex; align-items: center; gap: 9px; }
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 9px; }
@@ -302,7 +337,7 @@ p { margin: 0 0 14px; }
 
 /* Host rigging */
 .rig-box {
-    margin: 34px 0 0; padding-top: 16px;
+    margin: 28px 0 0; padding-top: 16px;
     border-top: 1px solid var(--line); font-size: 13px;
 }
 .rig-box summary {
@@ -332,6 +367,58 @@ p { margin: 0 0 14px; }
     border-radius: 10px; margin-bottom: 6px; font-size: 14px;
 }
 .pl.dead { opacity: 0.4; }
+
+/* 체력이 깎인 줄만 흔든다. 0.9초 간격으로 값이 바뀌니 흔들림은 짧게 끝내야
+   다음 틱과 겹치지 않는다. transform 만 건드려서 레이아웃을 다시 계산하지 않게 한다.
+   클래스 이름을 dmg 로 둔 것은 로그 이벤트 타입에 이미 hit 이 있어서다. */
+@keyframes pl-dmg {
+    0%   { transform: translateX(0); }
+    18%  { transform: translateX(-5px); }
+    38%  { transform: translateX(4px); }
+    58%  { transform: translateX(-3px); }
+    78%  { transform: translateX(2px); }
+    100% { transform: translateX(0); }
+}
+@keyframes pl-dmg-big {
+    0%   { transform: translateX(0); }
+    14%  { transform: translateX(-9px); }
+    30%  { transform: translateX(8px); }
+    48%  { transform: translateX(-6px); }
+    66%  { transform: translateX(4px); }
+    84%  { transform: translateX(-2px); }
+    100% { transform: translateX(0); }
+}
+.pl.dmg { animation: pl-dmg 0.34s ease-out; border-color: var(--accent); }
+.pl.dmg .hpbar u { background: #e5484d; }
+.pl.dmg-big { animation: pl-dmg-big 0.46s ease-out; }
+
+/* 보급품·구급상자처럼 체력이 오르는 이벤트. 맞을 때와 반대로 읽혀야 하니
+   좌우로 흔들지 않고 살짝 들어 올린다. 흔들림은 사고, 들림은 이득이다. */
+@keyframes pl-heal {
+    0%   { transform: translateY(0); }
+    35%  { transform: translateY(-4px); }
+    70%  { transform: translateY(1px); }
+    100% { transform: translateY(0); }
+}
+@keyframes pl-heal-big {
+    0%   { transform: translateY(0) scale(1); }
+    30%  { transform: translateY(-8px) scale(1.03); }
+    60%  { transform: translateY(2px) scale(0.995); }
+    100% { transform: translateY(0) scale(1); }
+}
+.pl.heal { animation: pl-heal 0.4s ease-out; border-color: #30a46c; }
+.pl.heal .hpbar u { background: #30a46c; }
+.pl.heal-big { animation: pl-heal-big 0.56s ease-out; }
+
+/* 애니메이션을 끄면 animationend 가 안 울려서 .hit 이 안 떼진다.
+   남아 있어도 눈에 아무 변화가 없도록 되돌려 놓는다. */
+@media (prefers-reduced-motion: reduce) {
+    .pl.dmg, .pl.dmg-big, .pl.heal, .pl.heal-big {
+        animation: none; border-color: var(--line);
+    }
+    .pl.dmg .hpbar u, .pl.heal .hpbar u { background: var(--accent); }
+    .hpbar u { transition: none; }
+}
 .pname { flex: none; width: 74px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
 .hpbar { flex: 1; height: 7px; background: var(--line); border-radius: 999px; overflow: hidden; }
 .hpbar u { display: block; height: 100%; background: var(--accent); transition: width 0.3s; }
@@ -342,6 +429,8 @@ p { margin: 0 0 14px; }
 .log .log-crit { color: var(--accent); font-weight: 700; }
 .log .log-out { color: var(--ink); font-weight: 700; }
 .log .log-good { color: var(--ink); }
+.log .log-hit { color: var(--ink); }
+.log .log-miss { color: var(--muted); }
 
 /* Score table (주사위) */
 .score-wrap { overflow-x: auto; margin-bottom: 16px; }
