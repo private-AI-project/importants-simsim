@@ -1,0 +1,78 @@
+{{ define "main" }}
+<article class="game">
+    <p class="quiz-cat">{{ .Params.category }}</p>
+    <h1>{{ .Title }}</h1>
+
+    <section id="bm-setup">
+        <p class="lead">폭탄이 한 명씩 돌아갑니다. 도화선이 다 타는 순간 들고 있던 사람이 걸립니다.</p>
+
+        <div class="sv-group">
+            <p class="sv-step">누가 하나요<span>최대 10명</span></p>
+            <div class="add-row">
+                <input type="text" id="bm-input" placeholder="이름 입력" maxlength="10"
+                       autocomplete="off" spellcheck="false" aria-label="참가자 이름">
+                <button type="button" class="btn primary small" id="bm-add">추가</button>
+            </div>
+
+            <div class="roster-head" id="bm-roster-head" hidden>
+                <span id="bm-roster-count">참가자</span>
+            </div>
+            <ul class="roster" id="bm-roster"></ul>
+            <p class="roster-empty" id="bm-empty">이름을 넣으면 여기에 쌓입니다.</p>
+        </div>
+
+        <details class="stake-fold">
+            <summary>무엇을 걸까요</summary>
+            <input type="text" id="bm-stake" class="sv-stake" placeholder="예) 오늘 커피"
+                   maxlength="24" autocomplete="off" aria-label="걸 것">
+        </details>
+
+        <button class="btn primary" id="bm-start" disabled>2명 이상 필요해요</button>
+
+        <details class="ab-help">
+            <summary>능력이 뭔가요</summary>
+            <p class="ab-note">시작할 때마다 새로 정해집니다. 미리 볼 수는 없습니다.</p>
+            <ul id="bm-stat-help"></ul>
+        </details>
+
+        <details class="rig-box">
+            <summary>방장만 보세요 <span class="rig-badge" id="bm-rig-badge" hidden>설정됨</span></summary>
+            <p class="rig-warn">정해두면 결과가 그쪽으로 흘러갑니다.</p>
+            <div class="rig-row">
+                <select id="bm-rig-target"><option value="">조작 안 함</option></select>
+                <select id="bm-rig-mode">
+                    <option value="lose">이 사람에서 터지게</option>
+                    <option value="win">이 사람은 안 터지게</option>
+                </select>
+            </div>
+        </details>
+    </section>
+
+    <section id="bm-stage" hidden>
+        <div class="bomb-ring" id="bm-circle">
+            <div class="fuse" id="bm-fuse">
+                <span class="fuse-num" id="bm-fusenum">100</span>
+            </div>
+            <div class="bomb" id="bm-bomb" aria-hidden="true">💣</div>
+            <canvas class="boom-fx" id="bm-fx" aria-hidden="true"></canvas>
+        </div>
+        <ul class="log" id="bm-log"></ul>
+        <button class="btn ghost small" id="bm-skip">결과 바로 보기</button>
+
+        <div class="result-panel" id="bm-result" hidden>
+            <p class="verdict" id="bm-verdict"></p>
+            <ol class="rank" id="bm-rank"></ol>
+            <div class="result-actions">
+                <button class="btn ghost small" id="bm-copy">결과 복사</button>
+                <button class="btn ghost small" id="bm-reset">명단 고치기</button>
+                <button class="btn primary" id="bm-again">다시 하기</button>
+            </div>
+        </div>
+    </section>
+
+    {{ with .Content }}<div class="game-desc">{{ . }}</div>{{ end }}
+</article>
+
+<script src="{{ "js/party.js" | relURL }}" defer></script>
+<script src="{{ "js/bomb.js" | relURL }}" defer></script>
+{{ end }}
