@@ -298,6 +298,11 @@
         "</div></li>";
     }).join("");
     if (elEmpty) elEmpty.hidden = entries.length > 0;
+    // 다른 게임과 같이 0명일 때는 머리줄을 접고, 있으면 개수를 붙인다.
+    var head = document.getElementById("rb-roster-head");
+    var cnt = document.getElementById("rb-roster-count");
+    if (head) head.hidden = entries.length === 0;
+    if (cnt) cnt.textContent = "출전 구슬 " + entries.length + "개";
     if (elStart) {
       elStart.disabled = entries.length < 2;
       elStart.textContent = entries.length < 2

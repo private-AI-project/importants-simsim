@@ -6,33 +6,38 @@
     <section id="rl-setup">
         <p class="lead">한 명만 뽑습니다. 같은 사람이 연달아 걸리지 않게 막아둡니다.</p>
 
-        <label class="field">
-            <span>무엇을 걸까요 <em>(선택)</em></span>
-            <input type="text" id="rl-stake" placeholder="예) 오늘 커피" maxlength="24" autocomplete="off">
-        </label>
+        <div class="sv-group">
+            <p class="sv-step">누가 참여하나요<span>최대 12명</span></p>
+            <div class="add-row">
+                <input type="text" id="rl-input" placeholder="이름 입력" maxlength="10"
+                       autocomplete="off" spellcheck="false" aria-label="참가자 이름">
+                <button type="button" class="btn primary small" id="rl-add">추가</button>
+            </div>
 
-        <div class="add-row">
-            <input type="text" id="rl-input" placeholder="이름 입력" maxlength="10"
-                   autocomplete="off" spellcheck="false">
-            <button type="button" class="btn primary small" id="rl-add">추가</button>
+            <div class="roster-head" id="rl-roster-head" hidden>
+                <span id="rl-roster-count">참가자</span>
+                <span class="hidden-note">직전 당첨자는 후보에서 빠집니다</span>
+            </div>
+            <ul class="roster" id="rl-roster"></ul>
+            <p class="roster-empty" id="rl-empty">이름을 넣으면 여기에 쌓입니다.</p>
         </div>
 
-        <div class="roster-head">
-            <span>참가자</span>
-            <span class="hidden-note">직전 당첨자는 후보에서 빠집니다</span>
-        </div>
-        <ul class="roster" id="rl-roster"></ul>
-        <p class="roster-empty" id="rl-empty">아직 아무도 없습니다. 최대 12명까지 넣을 수 있어요.</p>
-
+        <details class="stake-fold">
+            <summary>무엇을 걸까요</summary>
+            <input type="text" id="rl-stake" class="sv-stake" placeholder="예) 오늘 커피"
+                   maxlength="24" autocomplete="off" aria-label="걸 것">
+        </details>
 
         <button class="btn primary" id="rl-start" disabled>2명 이상 필요해요</button>
 
         <details class="rig-box">
-            <summary>설정 <span class="rig-badge" id="rl-rig-badge" hidden>설정됨</span></summary>
-            <p class="rig-warn">여기는 방장만 보세요. 정해두면 바늘이 그 칸에 섭니다.</p>
+            <summary>방장만 보세요 <span class="rig-badge" id="rl-rig-badge" hidden>설정됨</span></summary>
+            <p class="rig-warn">정해두면 바늘이 그 칸에 섭니다.</p>
             <div class="rig-row">
                 <select id="rl-rig-target"><option value="">조작 안 함</option></select>
-                <select id="rl-rig-mode"><option value="lose">이 사람 당첨</option></select>
+                <select id="rl-rig-mode">
+                    <option value="lose">이 사람 당첨</option>
+                </select>
             </div>
         </details>
     </section>
