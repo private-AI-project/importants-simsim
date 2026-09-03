@@ -20,6 +20,26 @@
   // allianceId/sid 가 비면 일반 검색 링크로 나가고 "제휴 링크 포함" 표시도 붙지 않는다.
   var AFFILIATE = { allianceId: "10396443", sid: "330109774", sub3: "D19651648" };
 
+  // 마이리얼트립 투어 링크. 투어·액티비티 수수료가 20% 로 항공(2~7%)보다 높다.
+  // 다만 트립닷컴과 달리 myrealt.rip 짧은 링크만 트래킹되고, 링크 하나가 목적지
+  // 하나로 고정된다. 날짜를 넣을 수 없어서 도시마다 손으로 만든 값을 여기 둔다.
+  // 비어 있는 도시는 링크를 그리지 않는다.
+  var TOURS = {
+    osa: "https://myrealt.rip/oeMIfe",   // 유니버설 스튜디오 재팬 입장권
+    fuk: "https://myrealt.rip/oeMhc9",   // 벳푸·유후인 1일 투어
+    tpe: "https://myrealt.rip/oeMo1a",   // 타이베이 101 전망대
+    bkk: "https://myrealt.rip/oeMsfa",   // 왕궁 투어
+    dad: "https://myrealt.rip/oeMx88",   // 바나힐 입장권
+    sin: "https://myrealt.rip/oeNE96",   // 가든스 바이 더 베이
+    par: "https://myrealt.rip/oeNI2e",   // 루브르 박물관
+    rom: "https://myrealt.rip/oeNL0c",   // 콜로세움 통합권
+    bcn: "https://myrealt.rip/oeNPea"    // 사그라다 파밀리아
+  };
+
+  function tourLink(cityCode) {
+    return TOURS[cityCode] || null;
+  }
+
   // 연휴 길이에 따라 갈 수 있는 거리가 갈린다. 이 서비스의 값어치가 그 판단에 있다.
   var TRIPS = [
     { min: 7, max: 99, label: "장거리", desc: "유럽, 미주",
@@ -482,7 +502,20 @@
         box.appendChild(img);
         a.appendChild(box);
         a.appendChild(el("span", "yc-city-name", pair[1]));
-        grid.appendChild(a);
+
+        var wrap = el("div", "yc-city-wrap");
+        wrap.appendChild(a);
+        var tour = tourLink(pair[0]);
+        if (tour) {
+          var t2 = document.createElement("a");
+          t2.href = tour;
+          t2.target = "_blank";
+          t2.rel = "nofollow sponsored noopener";
+          t2.className = "yc-city-tour";
+          t2.textContent = "현지 투어";
+          wrap.appendChild(t2);
+        }
+        grid.appendChild(wrap);
       });
       card.appendChild(grid);
       host.appendChild(card);
