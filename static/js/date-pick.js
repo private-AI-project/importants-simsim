@@ -55,6 +55,7 @@
   var elRigSel = document.getElementById("dp-rig-target");
   var elRigMode = document.getElementById("dp-rig-mode");
   var elRigBadge = document.getElementById("dp-rig-badge");
+  var elShare = document.querySelector(".share");
 
   // 기본은 아무것도 안 고른 상태다. 전부 켜두고 빼게 하면 안 되는 날이 많을 때
   // 손이 훨씬 많이 간다. 될 날짜만 눌러 담는다.
@@ -209,6 +210,7 @@
     if (elClear) elClear.hidden = list.length === 0 && out.length === 0;
 
     syncRig(list);
+    syncUrl();
   }
 
   // 조작 대상은 고른 날짜 중에서만 고를 수 있다. 후보에 없는 날을 정해두면
@@ -266,6 +268,69 @@
     stopRoll();
     paintCells();
     refresh();
+  }
+
+  // ── 주소에 상태 싣기 ──────────────────────────────────────
+  //
+  // 모임 날짜는 단톡방에서 정한다. 혼자 뽑고 결과를 손으로 옮겨 적게 하면
+  // 도구가 절반만 쓰인다. 고른 날짜를 주소에 실어두면 링크 하나로 같은
+  // 화면을 열 수 있고, 저장할 서버가 필요 없다.
+  //
+  //   p=20260904-20261001   기간
+  //   d=20260904,20260911   고른 날
+  //   x=20260918            뺀 날
+  //   w=20260912            뽑힌 날 (있으면 결과부터 보여준다)
+
+  function packDate(s) { return s.replace(/-/g, ""); }
+  function unpackDate(s) {
+    return /^\d{8}$/.test(s) ? s.slice(0, 4) + "-" + s.slice(4, 6) + "-" + s.slice(6) : null;
+  }
+
+  function syncUrl() {
+    if (!window.history || !history.replaceState) return;
+    var q = [];
+    if (elFrom.value && elTo.value) {
+      q.push("p=" + packDate(elFrom.value) + "-" + packDate(elTo.value));
+    }
+    var sel = Object.keys(selected).filter(inRange).sort();
+    if (sel.length) q.push("d=" + sel.map(packDate).join(","));
+    var rej = Object.keys(rejected).filter(function (d) {
+      return selected[d] && inRange(d);
+    }).sort();
+    if (rej.length) q.push("x=" + rej.map(packDate).join(","));
+    if (lastPicked) q.push("w=" + packDate(lastPicked));
+
+    var url = location.pathname + (q.length ? "?" + q.join("&") : "");
+    history.replaceState(null, "", url);
+    if (elShare) elShare.setAttribute("data-share-url", location.href);
+  }
+
+  function readUrl() {
+    var q = {};
+    location.search.replace(/^\?/, "").split("&").forEach(function (kv) {
+      if (!kv) return;
+      var i = kv.indexOf("=");
+      if (i > 0) q[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1));
+    });
+
+    var period = (q.p || "").split("-");
+    var from = unpackDate(period[0] || ""), to = unpackDate(period[1] || "");
+    if (from && to && from <= to) {
+      elFrom.value = from;
+      elTo.value = to;
+      var btns = document.getElementById("dp-presets").querySelectorAll(".on");
+      for (var i = 0; i < btns.length; i += 1) btns[i].classList.remove("on");
+    }
+
+    (q.d || "").split(",").forEach(function (t) {
+      var d = unpackDate(t);
+      if (d) selected[d] = true;
+    });
+    (q.x || "").split(",").forEach(function (t) {
+      var d = unpackDate(t);
+      if (d) rejected[d] = true;
+    });
+    return unpackDate(q.w || "");
   }
 
   // ── 토스트 ────────────────────────────────────────────────
@@ -332,6 +397,12 @@
     elResult.hidden = false;
     // 달력은 여기서 접는다. 훑는 동안에는 칸이 깜박이는 걸 봐야 하니 남겨둔다.
     if (elSetup) elSetup.hidden = true;
+
+    if (elShare) {
+      elShare.hidden = false;
+      elShare.setAttribute("data-share-text",
+        (d.getMonth() + 1) + "월 " + d.getDate() + "일 " + DOW[d.getDay()] + "요일로 정했습니다");
+    }
 
     // 클래스를 떼고 리플로우를 강제한 뒤 다시 붙여야 다시 뽑을 때도 재생된다.
     elResult.classList.remove("in");
@@ -552,6 +623,17 @@
   });
 
   setRange(4);
+  var shared = readUrl();
   renderMonths();
   refresh();
+
+  // 링크로 들어온 경우. 뽑힌 날이 실려 있으면 결과부터 보여준다.
+  // 후보만 실려 있으면 설정 화면에서 직접 뽑게 둔다.
+  if (shared && isCandidate(shared)) {
+    lastPicked = shared;
+    show(shared, candidates().length);
+    repaint();
+  } else if (shared) {
+    toast("링크의 날짜가 후보에 없습니다");
+  }
 })();

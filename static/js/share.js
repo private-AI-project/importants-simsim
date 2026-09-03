@@ -5,8 +5,14 @@
   var box = document.querySelector(".share");
   if (!box) return;
 
-  var url = location.href;
-  var text = box.getAttribute("data-share-text") || document.title;
+  // 페이지가 뜬 시점에 값을 잡아두면, 화면 안에서 결과가 바뀌는 도구에서는
+  // 옛 문구와 옛 주소를 공유하게 된다. 누를 때마다 다시 읽는다.
+  function shareText() {
+    return box.getAttribute("data-share-text") || document.title;
+  }
+  function shareUrl() {
+    return box.getAttribute("data-share-url") || location.href;
+  }
 
   function copyTo(btn, value, done) {
     var original = btn.textContent;
@@ -21,6 +27,8 @@
   box.querySelectorAll("[data-share]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var mode = btn.getAttribute("data-share");
+      var text = shareText();
+      var url = shareUrl();
       if (mode === "native") {
         if (navigator.share) {
           navigator.share({ title: text, text: text, url: url }).catch(function () {});
