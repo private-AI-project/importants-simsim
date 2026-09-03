@@ -81,7 +81,9 @@ window.Party = (function () {
       entries.forEach(function (e, i) { e.color = colorFor(i, entries.length); });
 
       elRoster.innerHTML = entries.map(function (e, i) {
-        var bars = cfg.stats
+        // showStats: false 면 시작 전에는 안 보여준다. 시작할 때 다시 굴리는 값이라
+        // 미리 보여주면 이 수치로 겨루는 줄로 읽힌다.
+        var bars = (cfg.stats && cfg.showStats !== false)
           ? '<div class="stats">' + statBars(cfg.stats, e.stats, cfg.statMax || 8) + "</div>"
           : "";
         return '<li><div class="rtop">' +
@@ -106,6 +108,8 @@ window.Party = (function () {
         elRigSel.value = entries.some(function (e) { return e.name === cur; }) ? cur : "";
         syncRig();
       }
+
+      if (cfg.onRender) cfg.onRender(entries);
     }
 
     function syncRig() {
