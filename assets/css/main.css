@@ -713,9 +713,20 @@ p { margin: 0 0 14px; }
 }
 
 /* 도시 칸: 사진은 항공권, 아래 작은 링크는 현지 투어 */
-.yc-city-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.yc-city-wrap { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+/* 사진(항공권)이 주, 이 버튼(투어)이 보조. 다만 11px 글씨에 여백 2px 이면
+   손가락으로 못 누른다. 탭 영역을 36px 로 잡고 테두리로 누를 수 있음을 보인다. */
 .yc-city-tour {
-    font-size: 11px; color: var(--muted); text-align: center;
-    text-decoration: none; padding: 2px 0;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 36px; padding: 6px 4px;
+    font-size: 12px; font-weight: 600; color: var(--accent);
+    text-align: center; text-decoration: none; line-height: 1.2;
+    border: 1px solid var(--line); border-radius: 9px;
+    background: var(--card);
 }
-.yc-city-tour:hover { color: var(--accent); text-decoration: underline; }
+.yc-city-tour:hover {
+    border-color: var(--accent); background: var(--accent-soft); text-decoration: none;
+}
+@media (max-width: 380px) {
+    .yc-city-tour { font-size: 11px; min-height: 34px; padding: 6px 2px; }
+}
