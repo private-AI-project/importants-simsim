@@ -252,6 +252,16 @@
   function stop() { if (timer) { clearInterval(timer); timer = null; } }
 
   setup = Party.makeSetup({
+    // 시작할 때 다시 굴리는 값이라 미리 보여주면 이 수치로 겨루는 줄로 읽힌다.
+    showStats: false,
+    onRender: function (entries) {
+      var head = document.getElementById("dc-roster-head");
+      var cnt = document.getElementById("dc-roster-count");
+      if (head) head.hidden = entries.length === 0;
+      if (cnt) cnt.textContent = cnt.dataset.label
+        ? cnt.dataset.label + " " + entries.length + "개"
+        : "참가자 " + entries.length + "명";
+    },
     prefix: P,
     maxPlayers: MAX,
     stats: STATS,

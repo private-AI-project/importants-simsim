@@ -320,6 +320,14 @@
   // ── 배선 ──────────────────────────────────────────────────
 
   setup = Party.makeSetup({
+    onRender: function (entries) {
+      var head = document.getElementById("ld-roster-head");
+      var cnt = document.getElementById("ld-roster-count");
+      if (head) head.hidden = entries.length === 0;
+      if (cnt) cnt.textContent = cnt.dataset.label
+        ? cnt.dataset.label + " " + entries.length + "개"
+        : "참가자 " + entries.length + "명";
+    },
     prefix: P,
     maxPlayers: MAX,
     stats: null,
