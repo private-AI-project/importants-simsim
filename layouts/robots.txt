@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+{{/* 결과 페이지는 공유 링크로만 들어오는 곳이라 색인하지 않는다. 각 페이지에
+     noindex 메타가 이미 붙어 있지만, 크롤러가 헛걸음하지 않게 여기서도 막는다. */}}
+Disallow: /quizzes/*/result/
+
+Sitemap: {{ "sitemap.xml" | absURL }}
