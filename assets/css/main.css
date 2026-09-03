@@ -432,6 +432,183 @@ p { margin: 0 0 14px; }
 .log .log-hit { color: var(--ink); }
 .log .log-miss { color: var(--muted); }
 
+/* ── 날짜 뽑기 ─────────────────────────────────────────────────────── */
+.dp-range { display: flex; align-items: center; gap: 8px; }
+.dp-range input[type="date"] {
+    flex: 1; min-width: 0; padding: 11px 12px; font-family: inherit; font-size: 15px;
+    color: var(--ink); background: var(--card);
+    border: 1px solid var(--line); border-radius: 12px;
+}
+.dp-tilde { flex: none; color: var(--muted); }
+.dp-presets { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+/* 달력 바로 아래라 붙어 보이지 않게 조금 띄운다. */
+.dp-quick { margin-top: 14px; }
+
+.dp-dows { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.dp-dows button {
+    padding: 10px 0; font-family: inherit; font-size: 14px; font-weight: 700;
+    color: var(--muted); background: var(--card);
+    border: 1px solid var(--line); border-radius: 10px; cursor: pointer;
+}
+.dp-dows button.on { color: #fff; background: var(--accent); border-color: var(--accent); }
+
+.dp-cal-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.dp-cal-head .sv-step { margin-bottom: 0; }
+.dp-legend {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin: 8px 0 12px; font-size: 12px; color: var(--muted);
+}
+.dp-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.dp-legend i { width: 11px; height: 11px; border-radius: 3px; }
+.dp-sw-on { background: var(--accent); }
+.dp-sw-hol { background: #e5484d; }
+.dp-sw-off { background: var(--line); }
+.dp-sw-wx { background: transparent; border: 1px solid var(--muted); position: relative; }
+.dp-sw-wx::after {
+    content: ""; position: absolute; right: 1px; bottom: 1px;
+    width: 4px; height: 4px; border-radius: 50%; background: var(--muted);
+}
+
+.dp-span { margin: 0 0 10px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.dp-dow-row, .dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.dp-dow-row {
+    margin-bottom: 5px; font-size: 11px; font-weight: 700; color: var(--muted); text-align: center;
+}
+.dp-cell {
+    aspect-ratio: 1; display: grid; place-items: center; padding: 0;
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    color: var(--muted); background: var(--card);
+    border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
+}
+/* 달이 바뀌는 칸은 10/1 처럼 월을 붙인다. 폭이 좁으니 글자를 줄인다. */
+.dp-cell.first b { font-size: 11px; font-weight: 800; }
+.dp-cell.out { opacity: 0.25; cursor: default; }
+.dp-cell.hol { color: #e5484d; }
+/* 후보만 눈에 들어와야 한다. 나머지는 배경으로 물러난다. */
+.dp-cell.on {
+    color: #fff; background: var(--accent); border-color: var(--accent);
+}
+.dp-cell.on.hol { background: #e5484d; border-color: #e5484d; }
+.dp-cell.off {
+    color: var(--muted); background: var(--line); border-color: var(--line);
+    text-decoration: line-through;
+}
+/* 뽑혔지만 안 되는 날. 고른 상태는 유지하면서 후보에서만 뺀다.
+   그래서 선택 해제(투명)와도, 후보(보라)와도 다르게 보여야 한다. */
+.dp-cell.rejected {
+    color: var(--muted); background: var(--line); border-color: var(--line);
+    text-decoration: line-through;
+}
+.dp-cell.rolling {
+    color: var(--ink); background: var(--accent-soft); border-color: var(--accent);
+}
+@keyframes dp-land {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.28); }
+    100% { transform: scale(1); }
+}
+.dp-cell.picked {
+    animation: dp-land 0.4s ease-out;
+    outline: 2px solid var(--ink); outline-offset: 1px;
+}
+
+/* 잠깐 띄우는 안내. 상주하는 문장으로 두면 평소에도 자리를 차지한다. */
+.dp-toast {
+    position: fixed; left: 50%; bottom: 28px; z-index: 50;
+    padding: 11px 18px; max-width: calc(100% - 40px);
+    font-size: 14px; font-weight: 600; color: var(--bg); background: var(--ink);
+    border-radius: 999px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+    transform: translate(-50%, 10px); opacity: 0; pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+}
+.dp-toast.show { transform: translate(-50%, 0); opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+    .dp-toast { transition: none; }
+}
+
+.dp-count { margin: 4px 0 12px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.dp-count.none { color: #e5484d; }
+
+.dp-result {
+    margin-top: 22px; padding: 22px 16px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    text-align: center;
+}
+.dp-picked-dow { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
+.dp-picked { margin: 4px 0 0; font-size: 18px; font-weight: 700; color: var(--accent); }
+.dp-picked-note { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+/* 날씨는 예보가 있는 날에만 붙는다. 없으면 줄 자체가 사라진다. */
+.dp-weather {
+    margin: 12px 0 0; padding: 10px 14px;
+    background: var(--accent-soft); border-radius: 10px;
+    font-size: 13.5px; font-weight: 600; color: var(--ink);
+}
+.dp-wx-src { display: block; margin-top: 3px; font-size: 11px; font-weight: 500; color: var(--muted); }
+
+/* 예보가 있는 날은 오른쪽 아래에 점을 찍는다. */
+.dp-cell.wx { position: relative; }
+.dp-cell.wx::after {
+    content: ""; position: absolute; right: 3px; bottom: 3px;
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--muted); opacity: 0.75;
+}
+.dp-cell.on.wx::after { background: #fff; opacity: 0.9; }
+
+/* 결과가 나올 때. 판이 먼저 올라오고 날짜가 튀어나온 뒤 나머지가 따라 뜬다.
+   한꺼번에 나타나면 뽑았다는 느낌이 안 든다. */
+@keyframes dp-panel-in {
+    from { opacity: 0; transform: translateY(14px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes dp-pop {
+    0%   { opacity: 0; transform: scale(0.6); }
+    55%  { opacity: 1; transform: scale(1.12); }
+    75%  { transform: scale(0.97); }
+    100% { opacity: 1; transform: scale(1); }
+}
+@keyframes dp-fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+/* 뽑힌 날짜 뒤로 한 번 번지는 원. 판 안에 갇히게 overflow 를 막는다. */
+@keyframes dp-ring {
+    0%   { opacity: 0.5; transform: translate(-50%, -50%) scale(0.3); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(2.6); }
+}
+
+.dp-result { position: relative; overflow: hidden; }
+.dp-result.in { animation: dp-panel-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.dp-result.in::before {
+    content: ""; position: absolute; left: 50%; top: 54px;
+    width: 130px; height: 130px; border-radius: 50%;
+    background: var(--accent); pointer-events: none;
+    animation: dp-ring 0.72s ease-out 0.1s both;
+}
+.dp-result.in .dp-picked-dow {
+    animation: dp-pop 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) 0.12s both;
+}
+.dp-result.in .dp-picked { animation: dp-fade-up 0.34s ease-out 0.3s both; }
+.dp-result.in .dp-picked-note { animation: dp-fade-up 0.34s ease-out 0.4s both; }
+.dp-result.in .result-actions { animation: dp-fade-up 0.34s ease-out 0.48s both; }
+
+@media (prefers-reduced-motion: reduce) {
+    .dp-result.in,
+    .dp-result.in .dp-picked-dow,
+    .dp-result.in .dp-picked,
+    .dp-result.in .dp-picked-note,
+    .dp-result.in .result-actions { animation: none; }
+    .dp-result.in::before { display: none; }
+}
+.dp-rejected {
+    margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line);
+    font-size: 12px; line-height: 1.6; color: var(--muted);
+}
+.dp-result .result-actions { justify-content: center; margin-top: 18px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .dp-cell.picked { animation: none; }
+}
+
 /* ── 폭탄 돌리기 ───────────────────────────────────────────────────
    원형 배치라 좌석 위치를 JS 가 transform 으로 잡는다. CSS 는 생김새만 맡는다. */
 .bomb-ring {
