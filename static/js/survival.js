@@ -466,19 +466,14 @@
     buildField(hpMap, deadSet);
     finish();
   });
-  document.getElementById("sv-copy").addEventListener("click", function (e) {
-    if (!result) return;
+  window.ResultShare.wire("sv-copy", function () {
+    if (!result) return [];
     var lines = result.ranking.map(function (p, i) { return (i + 1) + "위 " + p.name; });
     var w = target();
     var stake = (elStake && elStake.value.trim()) || "";
     if (w) lines.unshift((stake ? stake + " → " : "") + w.name, "");
-    var btn = e.currentTarget;
-    var original = btn.textContent;
-    navigator.clipboard.writeText(lines.join("\n")).then(function () {
-      btn.textContent = "복사됨";
-      setTimeout(function () { btn.textContent = original; }, 1800);
-    });
-  });
+    return lines;
+  }, "서바이벌 결과");
 
   var elHelp = document.getElementById("sv-stat-help");
   if (elHelp) {

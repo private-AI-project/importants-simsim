@@ -697,19 +697,14 @@
     elStage.hidden = true;
     elResult.hidden = true;
   });
-  document.getElementById("rb-copy").addEventListener("click", function (e) {
+  window.ResultShare.wire("rb-copy", function () {
     var lines = finished.map(function (m, i) { return (i + 1) + "위 " + m.name; });
     var w = winner();
     var stake = (elStake && elStake.value.trim()) || "";
     if (w) lines.unshift((stake ? stake + " → " : "") + w.name +
       (winRule === "last" ? " (꼴찌)" : " (1등)"), "");
-    var btn = e.currentTarget;
-    var original = btn.textContent;
-    navigator.clipboard.writeText(lines.join("\n")).then(function () {
-      btn.textContent = "복사됨";
-      setTimeout(function () { btn.textContent = original; }, 1800);
-    });
-  });
+    return lines;
+  }, "굴림판 결과");
 
   var elSkillHelp = document.getElementById("rb-skill-help");
   if (elSkillHelp) {

@@ -42,6 +42,10 @@
           "_blank",
           "noopener"
         );
+      } else if (mode === "result") {
+        // 결과 글과 주소를 같이 준다. 받은 사람이 어디서 나온 건지 알아야
+        // 그 사람도 한 번 눌러 본다. 주소가 빠지면 거기서 끝난다.
+        copyTo(btn, text + "\n\n" + url, "복사됨 (붙여넣기)");
       } else {
         copyTo(btn, url, "링크 복사됨");
       }

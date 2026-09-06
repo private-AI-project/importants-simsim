@@ -215,15 +215,8 @@ window.Party = (function () {
   }
 
   function wireCopy(prefix, getLines) {
-    var btn = document.getElementById(prefix + "-copy");
-    if (!btn) return;
-    btn.addEventListener("click", function () {
-      var original = btn.textContent;
-      navigator.clipboard.writeText(getLines().join("\n")).then(function () {
-        btn.textContent = "복사됨";
-        setTimeout(function () { btn.textContent = original; }, 1800);
-      });
-    });
+    // 실제 동작은 result-share.js 가 한다. 결과 글 끝에 페이지 주소를 붙여 내보낸다.
+    window.ResultShare.wire(prefix + "-copy", getLines);
   }
 
   return {
