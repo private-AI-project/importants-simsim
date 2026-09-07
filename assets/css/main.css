@@ -432,6 +432,121 @@ p { margin: 0 0 14px; }
 .log .log-hit { color: var(--ink); }
 .log .log-miss { color: var(--muted); }
 
+/* ── 정산 계산기 ───────────────────────────────────────────────────── */
+.st-people li, .st-items li, .st-detail li {
+    display: flex; align-items: center; gap: 9px; padding: 11px 14px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    margin-bottom: 7px; font-size: 15px;
+}
+.st-people .rname { flex: 1; font-weight: 600; }
+
+/* 항목 입력은 칸이 넷이라 한 덩이로 묶고 배경을 깔아 구분한다. */
+.st-item-form {
+    padding: 14px; margin-bottom: 14px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+}
+.st-item-form .add-row { margin-bottom: 10px; }
+.st-item-form #st-amount { flex: 0 1 104px; text-align: right; }
+.st-row { margin-bottom: 10px; }
+.st-field, .st-field-label {
+    display: block; font-size: 12px; font-weight: 700; color: var(--muted);
+    margin-bottom: 6px;
+}
+.st-field select {
+    width: 100%; padding: 10px 12px; font-family: inherit; font-size: 15px;
+    color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 10px;
+}
+.st-members { display: flex; flex-wrap: wrap; gap: 6px; }
+.st-chk { display: inline-flex; }
+.st-chk input { position: absolute; opacity: 0; width: 0; height: 0; }
+.st-chk span {
+    display: inline-block; padding: 7px 13px; font-size: 13px; font-weight: 600;
+    color: var(--muted); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 999px; cursor: pointer;
+}
+.st-chk input:checked + span {
+    color: #fff; background: var(--accent); border-color: var(--accent);
+}
+.st-chk input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 2px; }
+.st-item-add { width: 100%; margin-top: 4px; }
+
+.st-items li { display: block; }
+.st-item-top { display: flex; align-items: center; gap: 9px; }
+.st-item-label { flex: 1; font-weight: 700; }
+.st-item-amt { font-variant-numeric: tabular-nums; }
+.st-item-sub { margin-top: 5px; font-size: 12.5px; color: var(--muted); }
+
+/* 접어둔 설정. 열지 않아도 지금 값이 요약으로 보인다. */
+.st-opt { margin: 0 0 30px; padding-top: 16px; border-top: 1px solid var(--line); }
+.st-opt summary {
+    cursor: pointer; font-size: 14px; font-weight: 700; color: var(--muted);
+    list-style: none;
+}
+.st-opt summary::-webkit-details-marker { display: none; }
+.st-opt summary::before { content: "+ "; }
+.st-opt[open] summary { color: var(--ink); }
+.st-opt[open] summary::before { content: "− "; }
+.st-opt-now { margin-left: 7px; font-size: 12px; font-weight: 500; color: var(--muted); }
+.st-opt-row { margin-top: 16px; }
+
+.st-locked {
+    margin: 0; padding: 16px 14px; font-size: 13.5px; color: var(--muted);
+    background: var(--card); border: 1px dashed var(--line); border-radius: 14px;
+}
+.st-hint { margin: -4px 0 12px; font-size: 12.5px; line-height: 1.6; color: var(--muted); }
+
+.st-detail-box { margin-top: 22px; }
+.st-detail-box summary {
+    cursor: pointer; font-size: 13px; font-weight: 700; color: var(--accent);
+}
+.st-detail-box .st-detail { margin-top: 12px; }
+
+.st-absorb {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-top: 12px; padding: 12px 14px;
+    background: var(--accent-soft); border-radius: 12px; font-size: 14px;
+}
+.st-absorb b { color: var(--accent); }
+.st-absorb button { margin-left: auto; }
+
+.st-result { margin-top: 34px; padding-top: 26px; border-top: 1px solid var(--line); }
+.st-total-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 24px; padding: 14px 16px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+}
+.st-total-row span { font-size: 13px; font-weight: 700; color: var(--muted); }
+.st-total-row b { font-size: 22px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+
+.st-moves, .st-detail, .st-people, .st-items { list-style: none; padding: 0; margin: 0; }
+.st-moves li {
+    display: flex; align-items: center; gap: 9px; padding: 13px 15px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    margin-bottom: 8px; font-size: 15px;
+}
+.st-from, .st-to { font-weight: 700; }
+.st-arrow { color: var(--accent); font-weight: 800; }
+.st-amt { margin-left: auto; font-size: 16px; font-variant-numeric: tabular-nums; color: var(--accent); }
+.st-none { color: var(--muted); font-size: 14px; }
+
+.st-detail li { flex-wrap: wrap; font-size: 14px; }
+.st-detail .rname { flex: 1 1 100%; font-weight: 700; margin-bottom: 2px; }
+.st-extra { font-style: normal; font-size: 11.5px; font-weight: 600; color: var(--accent); }
+.st-d { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.st-diff { margin-left: auto; font-variant-numeric: tabular-nums; }
+.st-diff.plus { color: #30a46c; }
+.st-diff.minus { color: #e5484d; }
+
+.st-note { margin: 16px 0 0; font-size: 12.5px; line-height: 1.7; color: var(--muted); }
+.st-result .share { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); }
+.st-reset { margin-top: 18px; }
+
+@media (max-width: 380px) {
+    .st-item-form #st-amount { flex: 0 1 88px; }
+    .st-chk span { padding: 6px 11px; font-size: 12px; }
+}
+
 /* ── 날짜 뽑기 ─────────────────────────────────────────────────────── */
 .dp-range { display: flex; align-items: center; gap: 8px; }
 .dp-range input[type="date"] {
@@ -837,8 +952,11 @@ p { margin: 0 0 14px; }
 .yeoncha b, .yeoncha strong { font-weight: 800; }
 
 /* display 를 지정한 요소는 브라우저 기본 [hidden]{display:none} 을 이겨 버린다.
-   아래 .yc-screen 이 flex 라서, 이 규칙이 없으면 네 화면이 한꺼번에 보인다. */
-.yeoncha [hidden] { display: none; }
+   .yc-screen 이 flex 라서, 이 규칙이 없으면 네 화면이 한꺼번에 보인다.
+   정산은 .st-absorb 가 flex 라서 '누가 낼까요' 박스가 여러 명이 나눠서 모드에도
+   계속 보였다. display 를 주는 요소에 hidden 을 걸 때마다 되풀이되는 문제다. */
+.yeoncha [hidden],
+.settle [hidden] { display: none; }
 
 .yc-nav { display: flex; gap: 2px; background: var(--chip); border-radius: 99px; padding: 3px; align-self: flex-start; }
 .yc-nav button {
