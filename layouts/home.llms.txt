@@ -1,0 +1,20 @@
+{{- /* llms.txt — AI 크롤러가 사이트 전체를 한 파일로 읽는다.
+       사이트맵은 주소만 주지만 이 파일은 제목·설명을 같이 준다. */ -}}
+# {{ site.Title }}
+
+> {{ site.Params.description }}
+
+전부 무료이고 가입이 없습니다. 계산과 추첨은 브라우저 안에서 끝나며 입력한 값을 서버로 보내지 않습니다.
+
+만든 곳: {{ site.Params.author }}
+마지막 갱신: {{ now.Format "2006-01-02" }}
+{{- range $sec := slice "tools" "games" "quizzes" }}
+{{- $pages := where (where site.RegularPages "Section" $sec) "Params.noindex" "!=" true }}
+{{- with $pages }}
+
+## {{ index (dict "tools" "도구" "games" "게임" "quizzes" "테스트") $sec }}
+{{ range sort . "Weight" }}
+- [{{ .Title }}]({{ .Permalink }}): {{ with .Description }}{{ . | plainify }}{{ else }}{{ .Summary | plainify | truncate 160 }}{{ end }}
+{{- end }}
+{{- end }}
+{{- end }}

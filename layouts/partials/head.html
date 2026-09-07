@@ -21,6 +21,10 @@
 <meta property="og:image" content="{{ $og | absURL }}">
 <meta name="twitter:card" content="summary_large_image">
 
+{{- if not .Params.noindex }}
+{{- partial "schema.html" . }}
+{{- end }}
+
 {{- with site.Params.naverVerification }}
 <meta name="naver-site-verification" content="{{ . }}">
 {{- end }}
