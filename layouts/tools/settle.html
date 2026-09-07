@@ -1,0 +1,109 @@
+{{ define "main" }}
+<article class="game settle" id="st-app">
+    <p class="quiz-cat">{{ .Params.category }}</p>
+    <h1>{{ .Title }}</h1>
+
+    <p class="lead">1차에는 다 갔고 2차에는 둘만 갔어도 맞게 나눕니다. 누가 누구에게 얼마를 보낼지 알려줍니다.</p>
+
+    {{/* 단계를 둘로 줄였다. 처음엔 여섯 개를 한 화면에 늘어놓았는데,
+         단위와 나머지 처리는 대부분 기본값으로 쓰는 것이라 접었다.
+         이 페이지는 사이트에서 가장 빽빽해서 접는 게 특히 중요했다. */}}
+    <div class="sv-group">
+        <p class="sv-step">1. 누가 있었나요</p>
+        <div class="add-row">
+            <input type="text" id="st-name" placeholder="이름" maxlength="10"
+                   autocomplete="off" spellcheck="false" aria-label="이름">
+            <button type="button" class="btn primary small" id="st-add-name">추가</button>
+        </div>
+        <ul class="roster st-people" id="st-people"></ul>
+        <p class="roster-empty" id="st-people-empty">먼저 온 사람들을 넣어 주세요.</p>
+    </div>
+
+    {{/* 사람이 없어도 이 덩이는 남겨 둔다. 처음에는 통째로 감췄더니 화면이
+         '1. 누가 있었나요' 에서 '금액 단위' 로 건너뛰어, 금액 넣는 곳이
+         없는 것처럼 보였다. 자리는 두고 폼만 잠근다. */}}
+    <div class="sv-group" id="st-spend">
+        <p class="sv-step">2. 무엇에 얼마 썼나요</p>
+        <p class="st-hint">1차, 2차, 택시처럼 따로 넣으세요. 그래야 중간에 빠진 사람을 뺄 수 있습니다.</p>
+
+        <p class="st-locked" id="st-locked">위에 사람을 먼저 넣어 주세요.</p>
+
+        <div class="st-item-form" id="st-item-form">
+            <div class="add-row">
+                <input type="text" id="st-label" placeholder="1차 삼겹살" maxlength="16"
+                       autocomplete="off" aria-label="어디에 썼는지">
+                <input type="text" id="st-amount" placeholder="금액" inputmode="numeric"
+                       autocomplete="off" aria-label="금액">
+            </div>
+            <label class="st-field">
+                <span>누가 계산했나요</span>
+                <select id="st-payer"></select>
+            </label>
+            <div class="st-field">
+                <span>여기 있던 사람</span>
+                <div class="st-members" id="st-members"></div>
+            </div>
+            <button type="button" class="btn primary st-item-add" id="st-add-item">이 항목 넣기</button>
+        </div>
+
+        <ul class="st-items" id="st-items"></ul>
+    </div>
+
+    <details class="st-opt" id="st-opt">
+        <summary>금액 단위 <span class="st-opt-now" id="st-opt-now"></span></summary>
+
+        <div class="st-opt-row">
+            <span class="st-field-label">얼마 단위로 맞출까요</span>
+            <div class="rule-bar" id="st-unit">
+                <button type="button" class="cam-btn" data-unit="1">1원</button>
+                <button type="button" class="cam-btn on" data-unit="100">100원</button>
+                <button type="button" class="cam-btn" data-unit="1000">1000원</button>
+            </div>
+        </div>
+
+        <div class="st-opt-row">
+            <span class="st-field-label">남는 돈은 누가 낼까요</span>
+            <div class="rule-bar" id="st-mode">
+                <button type="button" class="cam-btn on" data-mode="split">여러 명이 나눠서</button>
+                <button type="button" class="cam-btn" data-mode="one">한 사람이 몰아서</button>
+            </div>
+            <div class="st-absorb" id="st-absorb-box" hidden>
+                <span><b id="st-absorb"></b>님이 냅니다</span>
+                <button type="button" class="btn ghost small" id="st-reroll">다시 뽑기</button>
+            </div>
+        </div>
+    </details>
+
+    <div class="st-result" id="st-result" hidden>
+        <div class="st-total-row">
+            <span>다 합쳐서</span>
+            <b id="st-total">0원</b>
+        </div>
+
+        <p class="sv-step">이대로 보내세요</p>
+        <ul class="st-moves" id="st-moves"></ul>
+        <p class="st-note" id="st-note"></p>
+
+        <details class="st-detail-box">
+            <summary>한 사람씩 자세히</summary>
+            <ul class="st-detail" id="st-detail"></ul>
+        </details>
+
+        <div class="share" data-share-text="정산 결과">
+            <span class="share-label">단톡방에 보내기</span>
+            <div class="share-btns">
+                <button class="share-btn kakao" type="button" data-share="native">카카오톡·메시지</button>
+                <button class="share-btn link" type="button" data-share="result">결과 복사</button>
+            </div>
+            <p class="share-note">이름과 금액은 링크에 담기지 않습니다. 결과 글과 계산기 주소만 복사됩니다.</p>
+        </div>
+
+        <button type="button" class="btn ghost small st-reset" id="st-reset">처음부터 다시</button>
+    </div>
+
+    {{ with .Content }}<div class="game-desc">{{ . }}</div>{{ end }}
+</article>
+
+<script src="{{ "js/share.js" | relURL }}" defer></script>
+<script src="{{ "js/settle.js" | relURL }}" defer></script>
+{{ end }}
