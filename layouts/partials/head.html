@@ -29,6 +29,10 @@
 <meta name="naver-site-verification" content="{{ . }}">
 {{- end }}
 
+{{- with site.Params.bingVerification }}
+<meta name="msvalidate.01" content="{{ . }}">
+{{- end }}
+
 {{- with resources.Get "css/main.css" | minify | fingerprint }}
 <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
 {{- end }}
