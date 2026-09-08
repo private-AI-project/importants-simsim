@@ -33,6 +33,12 @@
 <meta name="msvalidate.01" content="{{ . }}">
 {{- end }}
 
+{{/* 애드센스. 블로그 넷에는 있는데 여기만 빠져 있었다.
+     static/ads.txt 의 퍼블리셔 ID 와 같아야 승인이 붙는다. */}}
+{{- with site.Params.adsenseClient }}
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ . }}" crossorigin="anonymous"></script>
+{{- end }}
+
 {{- with resources.Get "css/main.css" | minify | fingerprint }}
 <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
 {{- end }}
