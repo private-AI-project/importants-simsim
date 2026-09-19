@@ -2,6 +2,7 @@
 title: "주사위 대결"
 date: 2026-09-01T09:00:00+09:00
 draft: false
+noindex: true
 slug: "dice"
 description: "5라운드 동안 주사위를 굴려 점수를 쌓습니다. 손끝·뚝심·배짱·운 능력치가 붙고, 마지막 라운드까지 순위가 뒤집힙니다."
 emoji: "🎲"

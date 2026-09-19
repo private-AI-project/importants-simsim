@@ -2,6 +2,7 @@
 title: "폭탄 돌리기"
 date: 2026-09-03T09:00:00+09:00
 draft: false
+noindex: true
 slug: "bomb"
 description: "이름을 넣으면 폭탄이 한 명씩 돌아갑니다. 도화선이 다 타는 순간 들고 있던 사람이 걸립니다. 커피 내기, 벌칙 정하기에 씁니다."
 emoji: "💣"
