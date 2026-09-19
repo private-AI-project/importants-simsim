@@ -2,6 +2,7 @@
 title: "굴림판"
 date: 2026-09-01T09:00:00+09:00
 draft: false
+noindex: true
 slug: "roll-board"
 description: "이름을 넣고 굴리면 구슬이 코스를 내려가며 순위를 정합니다. 커피 내기, 발표 순서, 벌칙 정하기에 씁니다. 구슬마다 스킬이 하나씩 붙습니다."
 emoji: "🎱"

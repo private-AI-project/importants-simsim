@@ -2,6 +2,7 @@
 title: "사다리타기"
 date: 2026-09-01T09:00:00+09:00
 draft: false
+noindex: true
 slug: "ladder"
 description: "이름을 넣고 사다리를 타면 순서나 당첨자가 정해집니다. 결과 칸은 매번 섞이고, 한 명씩 차례로 내려갑니다."
 emoji: "🪜"

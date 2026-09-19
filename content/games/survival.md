@@ -2,6 +2,7 @@
 title: "서바이벌"
 date: 2026-09-01T09:00:00+09:00
 draft: false
+noindex: true
 slug: "survival"
 description: "이름을 넣으면 능력치를 받고 알아서 싸웁니다. 탈락한 순서의 역순이 최종 순위가 됩니다. 커피 내기, 벌칙 정하기에 씁니다."
 emoji: "⚔️"
