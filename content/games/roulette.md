@@ -2,6 +2,7 @@
 title: "돌림판"
 date: 2026-09-01T09:00:00+09:00
 draft: false
+noindex: true
 slug: "roulette"
 description: "돌려서 한 명만 뽑습니다. 같은 사람이 연달아 당첨되지 않게 막아두었습니다."
 emoji: "🎯"
