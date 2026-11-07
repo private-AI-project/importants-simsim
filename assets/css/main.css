@@ -1244,3 +1244,7 @@ p { margin: 0 0 14px; }
 @media (max-width: 380px) {
     .yc-city-tour { font-size: 11px; min-height: 34px; padding: 6px 2px; }
 }
+
+/* 새 버전 도구로 가는 링크(2026-11-08) */
+.newver{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0 20px;padding:14px 18px;border-radius:14px;background:#a78bfa;color:#16181d;font-weight:800;text-decoration:none}
+.newver small{font-weight:600;font-size:12px;opacity:.75}
